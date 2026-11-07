@@ -1,0 +1,3 @@
+Model,K,Precision@K,Recall@K,HitRate@K,Catalog_Coverage
+Popularity Baseline,5,0.0378,0.0055,0.1582,0.0102
+Popularity Baseline,10,0.0327,0.009,0.2317,0.019

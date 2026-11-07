@@ -1,0 +1,11 @@
+metric,count
+Total Raw Records,1067371
+Cancellations / Negative Qty Excluded,22951
+Zero / Negative Price Excluded,6207
+Missing Customer ID Excluded,243007
+Non-merchandise Codes Excluded,5351
+Duplicate Rows Dropped,36550
+Clean Valid Records Retained,766382
+Unique Retained Customers,5862
+Unique Retained Products,4625
+Unique Retained Baskets,36645

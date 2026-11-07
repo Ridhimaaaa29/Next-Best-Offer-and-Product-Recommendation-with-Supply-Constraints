@@ -1,0 +1,53 @@
+product_id,product_name,category,subcategory,brand,unit_price,unit_cost,product_rating,product_popularity,product_status
+PROD_0001,Wireless Noise-Cancelling Headphones,Electronics,Audio,AudioMax,199.99,109.99,4.5,0.95,active
+PROD_0002,Bluetooth Pocket Speaker,Electronics,Audio,SoundWave,49.99,22.0,3.8,0.88,active
+PROD_0003,True Wireless Earbuds,Electronics,Audio,AudioMax,89.99,45.0,4.1,0.9,active
+PROD_0004,Hi-Res Studio Monitor Headphones,Electronics,Audio,ProSound,149.99,85.0,4.0,0.82,active
+PROD_0005,Braided USB-C Fast Charging Cable,Electronics,Accessories,VoltTech,14.99,3.5,4.6,0.92,active
+PROD_0006,Magnetic Wireless Charging Stand,Electronics,Accessories,VoltTech,39.99,16.0,4.5,0.89,active
+PROD_0007,65W GaN Compact Wall Charger,Electronics,Accessories,VoltTech,34.99,14.0,4.8,0.91,active
+PROD_0008,Waterproof Silicone Protective Case,Electronics,Accessories,ArmorGear,12.99,2.8,3.9,0.85,active
+PROD_0009,Smart Fitness Tracker Watch,Electronics,Wearables,FitPulse,129.99,65.0,4.3,0.87,active
+PROD_0010,Replacement Breathable Sport Strap,Electronics,Wearables,FitPulse,19.99,4.0,3.8,0.84,active
+PROD_0011,Smart Health Band with Sleep Monitor,Electronics,Wearables,FitPulse,79.99,38.0,4.0,0.8,active
+PROD_0012,Italian Espresso Machine Compact,Coffee & Kitchen,Brewing,BaristaCraft,249.99,140.0,4.4,0.94,active
+PROD_0013,Precision Conical Burr Coffee Grinder,Coffee & Kitchen,Brewing,BaristaCraft,99.99,52.0,3.8,0.91,active
+PROD_0014,Stainless Steel Pour-Over Kettle,Coffee & Kitchen,Brewing,BaristaCraft,45.99,20.0,4.0,0.86,active
+PROD_0015,French Press Coffee Maker 1L,Coffee & Kitchen,Brewing,BrewArt,29.99,11.0,4.5,0.89,active
+PROD_0016,Artisan Single-Origin Coffee Beans 1kg,Coffee & Kitchen,Beans & Supplies,RoastMasters,28.99,13.5,4.4,0.96,active
+PROD_0017,Dark Roast Espresso Blend 500g,Coffee & Kitchen,Beans & Supplies,RoastMasters,16.99,7.5,4.0,0.93,active
+PROD_0018,Unbleached Cone Coffee Filters 100pk,Coffee & Kitchen,Beans & Supplies,BrewArt,8.99,2.0,4.4,0.9,active
+PROD_0019,Vacuum Sealed Coffee Storage Canister,Coffee & Kitchen,Beans & Supplies,BaristaCraft,24.99,9.5,4.7,0.85,active
+PROD_0020,Double-Walled Thermal Travel Mug 450ml,Coffee & Kitchen,Kitchenware,ThermaGrip,22.99,7.5,3.8,0.92,active
+PROD_0021,Silicone Non-Stick Baking Mat Set,Coffee & Kitchen,Kitchenware,ChefChoice,18.99,5.0,4.7,0.83,active
+PROD_0022,Digital Food Scale with Timer,Coffee & Kitchen,Kitchenware,ChefChoice,26.99,10.0,4.6,0.88,active
+PROD_0023,High-Density Non-Slip Yoga Mat,Health & Fitness,Equipment,ZenFit,34.99,12.0,4.2,0.91,active
+PROD_0024,Adjustable Dumbbell Set 20kg,Health & Fitness,Equipment,IronCore,189.99,115.0,4.0,0.89,active
+PROD_0025,Fabric Resistance Exercise Bands Set of 5,Health & Fitness,Equipment,ZenFit,19.99,5.2,4.9,0.93,active
+PROD_0026,High-Density Foam Muscle Roller,Health & Fitness,Equipment,RecoveryPro,24.99,7.0,4.2,0.86,active
+PROD_0027,Organic Whey Isolate Protein Powder 1kg,Health & Fitness,Supplements & Hydration,PureNutrition,44.99,22.0,3.9,0.9,active
+PROD_0028,BCAA Recovery Electrolyte Powder 500g,Health & Fitness,Supplements & Hydration,PureNutrition,29.99,12.5,3.9,0.87,active
+PROD_0029,Insulated Stainless Steel Shaker Bottle 750ml,Health & Fitness,Supplements & Hydration,ZenFit,18.99,5.5,4.7,0.91,active
+PROD_0030,Daily Multivitamin Complex 90 Caps,Health & Fitness,Supplements & Hydration,PureNutrition,21.99,8.0,4.5,0.85,active
+PROD_0031,100% Organic Egyptian Cotton Sheet Set Queen,Home & Living,Bed & Bath,Loom & Thread,119.99,58.0,4.7,0.93,active
+PROD_0032,Memory Foam Ergonomic Contour Pillow,Home & Living,Bed & Bath,RestWell,49.99,21.0,4.6,0.91,active
+PROD_0033,Plush Turkish Bath Towel Set 4-Piece,Home & Living,Bed & Bath,Loom & Thread,59.99,26.0,4.4,0.88,active
+PROD_0034,Modular Fabric Closet Organizer Cubes 6pk,Home & Living,Organization,TidySpace,27.99,9.0,4.9,0.86,active
+PROD_0035,Airtight Food Storage Containers 10pk,Home & Living,Organization,TidySpace,39.99,15.0,4.2,0.92,active
+PROD_0036,Bamboo Desktop Cable & Device Organizer,Home & Living,Organization,TidySpace,25.99,24.69,4.4,0.85,active
+PROD_0037,Hydrating Hyaluronic Acid Serum 50ml,Beauty & Skincare,Skincare,GlowLab,32.99,11.0,4.7,0.94,active
+PROD_0038,Gentle Foaming Facial Cleanser 200ml,Beauty & Skincare,Skincare,GlowLab,21.99,6.5,4.5,0.91,active
+PROD_0039,SPF 50 Mineral Daily Sunscreen 100ml,Beauty & Skincare,Skincare,PureShield,24.99,8.0,4.7,0.93,active
+PROD_0040,Nourishing Overnight Ceramide Cream 60g,Beauty & Skincare,Skincare,GlowLab,38.99,13.5,4.4,0.89,active
+PROD_0041,Rose Quartz Facial Roller & Gua Sha Set,Beauty & Skincare,Tools,GlowLab,19.99,5.0,4.6,0.88,active
+PROD_0042,Sonic Deep Cleansing Face Brush,Beauty & Skincare,Tools,DermaSonic,54.99,22.0,3.9,0.86,active
+PROD_0043,Limited Edition Gold Wireless Headphones,Electronics,Audio,AudioMax,299.99,285.0,4.9,0.7,active
+PROD_0044,Legacy 30-Pin Charging Cable Vintage,Electronics,Accessories,VoltTech,9.99,4.0,3.2,0.2,discontinued
+PROD_0045,Commercial Grade 3-Group Espresso Bar,Coffee & Kitchen,Brewing,BaristaCraft,1899.99,1100.0,4.9,0.4,active
+PROD_0046,Decaf Swiss Water Columbian Beans 500g,Coffee & Kitchen,Beans & Supplies,RoastMasters,17.99,7.5,4.5,0.75,active
+PROD_0047,Pro Heavy-Duty Weightlifting Barbell 20kg,Health & Fitness,Equipment,IronCore,159.99,90.0,4.8,0.8,active
+PROD_0048,Collagen Peptides Powder 500g,Health & Fitness,Supplements & Hydration,PureNutrition,34.99,14.0,4.7,0.82,active
+PROD_0049,Weighted Deep Sleep Blanket 15lbs,Home & Living,Bed & Bath,RestWell,89.99,42.0,4.6,0.85,active
+PROD_0050,Minimalist Under-Bed Storage Bags 3pk,Home & Living,Organization,TidySpace,22.99,7.0,4.4,0.78,active
+PROD_0051,Vitamin C 20% Brightening Serum 30ml,Beauty & Skincare,Skincare,GlowLab,28.99,9.0,4.6,0.88,active
+PROD_0052,Organic Bamboo Reusable Makeup Remover Pads,Beauty & Skincare,Tools,PureShield,14.99,3.5,4.5,0.79,active

@@ -1,0 +1,8 @@
+rule_id,rule_name,rule_type,threshold,operator,action,priority,enabled,description
+RULE_STK_001,Exclude Out-of-Stock Items,inventory,0.0,<=,EXCLUDE,1,True,Candidates with available_stock <= 0 must be excluded from actionable offers to prevent fulfillment failures.
+RULE_STK_002,Exclude Unknown Inventory,inventory,NULL,IS_NULL,EXCLUDE,1,True,Products with unverified or missing inventory status must never be assumed available; excluded by fail-safe.
+RULE_MAR_001,Minimum Margin Threshold,margin,0.10,<,EXCLUDE,2,True,Candidates with gross profit margin strictly below 10% (0.10) cannot support recommendation discounts.
+RULE_REW_001,Reward Redemption Eligibility,reward_eligibility,True,==,EXCLUDE_IF_REWARD_CONTEXT,3,True,"When customer context is reward point redemption, product must have reward_eligible == True."
+RULE_FUL_001,Maximum Permitted Shipping Days,fulfilment,7,<=,FLAG_OR_EXCLUDE_EXPRESS,4,True,Offers requiring standard express promise cannot have estimated shipping_days > 7.
+RULE_PRO_001,Promotion Active Status,promotional,True,==,EXCLUDE,5,True,Product must be flagged promotion_eligible == True to appear in targeted campaigns.
+RULE_STATUS_001,Exclude Discontinued Products,status,active,!=,EXCLUDE,0,True,Products with product_status not equal to 'active' must be excluded.

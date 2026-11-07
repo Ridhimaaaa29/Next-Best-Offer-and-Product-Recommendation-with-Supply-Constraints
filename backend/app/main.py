@@ -1,0 +1,55 @@
+"""
+FastAPI Main Application Entry Point
+Project: Next-Best-Offer and Product Recommendation with Supply Constraints
+"""
+
+from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
+
+from backend.app.config import settings
+from backend.app.observability.logging import configure_logging, get_logger
+from backend.app.middleware.request_id import RequestIdMiddleware
+from backend.app.middleware.error_handler import LoggingMiddleware, validation_exception_handler
+from backend.app.api.routes.health import router as health_router
+from backend.app.api.routes.recommendations import router as recommendations_router
+from backend.app.api.routes.products import router as products_router
+from backend.app.api.routes.evaluation import router as evaluation_router
+from backend.app.api.routes.decisions import router as decisions_router
+from backend.app.api.routes.customers import router as customers_router
+from backend.app.api.routes.catalogue import router as catalogue_router
+from backend.app.api.routes.assistant import router as assistant_router
+from backend.app.api.routes.audit import router as audit_router
+
+# Initialize structured logging
+configure_logging(level=settings.log_level)
+logger = get_logger("app.main")
+
+app = FastAPI(
+    title=settings.app_title,
+    version=settings.app_version,
+    description=settings.app_description,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+)
+
+# Register Middleware
+app.add_middleware(LoggingMiddleware)
+app.add_middleware(RequestIdMiddleware)
+
+# Register Centralized Exception Handler
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+
+# Include API v1 Routes
+app.include_router(health_router, prefix=settings.api_prefix)
+app.include_router(recommendations_router, prefix=settings.api_prefix)
+app.include_router(products_router, prefix=settings.api_prefix)
+app.include_router(evaluation_router, prefix=settings.api_prefix)
+app.include_router(decisions_router, prefix=settings.api_prefix)
+app.include_router(customers_router, prefix=settings.api_prefix)
+app.include_router(catalogue_router, prefix=settings.api_prefix)
+app.include_router(assistant_router, prefix=settings.api_prefix)
+app.include_router(audit_router, prefix=settings.api_prefix)
+
+# Also expose /health at root for container orchestration
+app.include_router(health_router)

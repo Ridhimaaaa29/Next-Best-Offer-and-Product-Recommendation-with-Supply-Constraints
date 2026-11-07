@@ -1,0 +1,501 @@
+customer_id,customer_segment,age_group,location,membership_tier,reward_points,preferred_category,customer_status,total_orders,total_spend,last_purchase_date,average_order_value
+CUST_0001,Tech & Gadget Aficionado,25-34,"San Francisco, CA",Gold,1327,Electronics,active,11,1577.42,2026-08-01 12:16:00,143.4
+CUST_0002,Tech & Gadget Aficionado,25-34,"Miami, FL",Bronze,3410,Electronics,active,12,2038.68,2026-04-19 08:33:00,169.89
+CUST_0003,Tech & Gadget Aficionado,25-34,"San Francisco, CA",Silver,1901,Electronics,active,9,1519.8,2026-08-24 09:53:00,168.87
+CUST_0004,Health & Wellness Regular,25-34,"Denver, CO",Silver,5842,Health & Fitness,active,7,2359.6,2026-01-20 16:43:00,337.09
+CUST_0005,Casual Budget Shopper,25-34,"Miami, FL",Silver,164,Beauty & Skincare,active,6,550.86,2026-09-28 15:58:00,91.81
+CUST_0006,Casual Budget Shopper,25-34,"San Francisco, CA",Bronze,694,Beauty & Skincare,active,3,286.93,2026-03-30 20:54:00,95.64
+CUST_0007,Tech & Gadget Aficionado,45-54,"Denver, CO",Bronze,1643,Electronics,active,9,760.84,2026-10-13 12:16:00,84.54
+CUST_0008,Tech & Gadget Aficionado,35-44,"Seattle, WA",Silver,4009,Electronics,active,7,567.04,2026-10-16 10:20:00,81.01
+CUST_0009,Casual Budget Shopper,25-34,"Chicago, IL",Silver,333,Electronics,active,3,390.39,2026-05-17 13:19:00,130.13
+CUST_0010,Casual Budget Shopper,45-54,"Austin, TX",Bronze,914,Electronics,active,6,937.85,2026-09-03 17:07:00,156.31
+CUST_0011,Tech & Gadget Aficionado,55+,"Seattle, WA",Gold,594,Electronics,active,6,912.45,2026-07-16 19:54:00,152.07
+CUST_0012,Casual Budget Shopper,18-24,"Seattle, WA",Bronze,746,Beauty & Skincare,active,2,121.95,2025-06-13 10:30:00,60.98
+CUST_0013,Tech & Gadget Aficionado,18-24,"Seattle, WA",Gold,1963,Electronics,active,4,785.61,2026-08-14 12:03:00,196.4
+CUST_0014,Health & Wellness Regular,18-24,"Seattle, WA",Gold,4758,Health & Fitness,active,10,1103.17,2026-05-26 13:58:00,110.32
+CUST_0015,Health & Wellness Regular,25-34,"Austin, TX",Silver,4944,Health & Fitness,active,10,826.25,2026-07-01 17:15:00,82.62
+CUST_0016,Occasional Gifter,35-44,"Denver, CO",Bronze,9,Beauty & Skincare,dormant,3,388.92,2026-06-11 19:56:00,129.64
+CUST_0017,Casual Budget Shopper,45-54,"Seattle, WA",Bronze,543,Electronics,dormant,4,697.91,2025-03-31 10:34:00,174.48
+CUST_0018,High-Value Enthusiast,25-34,"San Francisco, CA",Platinum,11727,Coffee & Kitchen,active,19,2111.88,2026-09-03 10:41:00,111.15
+CUST_0019,High-Value Enthusiast,25-34,"Austin, TX",Gold,12938,Electronics,active,17,2596.12,2026-10-15 14:25:00,152.71
+CUST_0020,Occasional Gifter,45-54,"Chicago, IL",Bronze,365,Coffee & Kitchen,active,3,488.91,2026-08-20 20:15:00,162.97
+CUST_0021,Casual Budget Shopper,25-34,"Denver, CO",Bronze,510,Beauty & Skincare,active,5,509.83,2026-10-11 12:31:00,101.97
+CUST_0022,Health & Wellness Regular,25-34,"Chicago, IL",Bronze,5769,Health & Fitness,active,12,1077.75,2026-06-15 19:44:00,89.81
+CUST_0023,High-Value Enthusiast,18-24,"New York, NY",Platinum,4160,Home & Living,active,15,1451.41,2026-09-25 11:30:00,96.76
+CUST_0024,Tech & Gadget Aficionado,35-44,"Chicago, IL",Silver,4372,Electronics,active,7,1325.08,2026-10-11 16:23:00,189.3
+CUST_0025,Tech & Gadget Aficionado,25-34,"Boston, MA",Bronze,1294,Electronics,active,7,1250.83,2026-07-06 16:26:00,178.69
+CUST_0026,Casual Budget Shopper,25-34,"Boston, MA",Bronze,160,Electronics,active,3,527.9,2026-07-18 08:18:00,175.97
+CUST_0027,Health & Wellness Regular,18-24,"Miami, FL",Gold,1495,Health & Fitness,active,4,423.81,2026-07-24 20:21:00,105.95
+CUST_0028,Tech & Gadget Aficionado,25-34,"Denver, CO",Bronze,2003,Electronics,active,10,1898.79,2026-08-02 08:21:00,189.88
+CUST_0029,Tech & Gadget Aficionado,25-34,"San Francisco, CA",Silver,1302,Electronics,active,4,618.36,2026-08-20 16:59:00,154.59
+CUST_0030,High-Value Enthusiast,55+,"New York, NY",Platinum,6872,Coffee & Kitchen,active,15,1875.59,2026-10-03 18:28:00,125.04
+CUST_0031,Health & Wellness Regular,25-34,"Boston, MA",Gold,1948,Health & Fitness,active,7,817.94,2026-04-11 08:42:00,116.85
+CUST_0032,Tech & Gadget Aficionado,55+,"Seattle, WA",Gold,4227,Electronics,active,12,2197.47,2026-08-16 09:28:00,183.12
+CUST_0033,Tech & Gadget Aficionado,35-44,"Denver, CO",Bronze,2930,Electronics,active,12,1927.7,2026-06-19 16:10:00,160.64
+CUST_0034,Tech & Gadget Aficionado,18-24,"New York, NY",Silver,968,Electronics,active,8,990.71,2026-09-03 13:53:00,123.84
+CUST_0035,High-Value Enthusiast,25-34,"Austin, TX",Gold,11320,Coffee & Kitchen,active,8,3146.17,2026-10-20 12:51:00,393.27
+CUST_0036,Casual Budget Shopper,18-24,"San Francisco, CA",Bronze,531,Home & Living,active,4,410.92,2026-09-23 17:46:00,102.73
+CUST_0037,Casual Budget Shopper,25-34,"New York, NY",Bronze,908,Electronics,active,2,397.94,2026-04-21 20:28:00,198.97
+CUST_0038,Health & Wellness Regular,45-54,"Chicago, IL",Silver,3173,Health & Fitness,active,8,733.2,2026-08-22 15:01:00,91.65
+CUST_0039,Tech & Gadget Aficionado,25-34,"Seattle, WA",Silver,1094,Electronics,active,10,1092.32,2026-08-12 11:04:00,109.23
+CUST_0040,High-Value Enthusiast,35-44,"San Francisco, CA",Gold,6492,Home & Living,active,18,1808.57,2026-08-31 14:13:00,100.48
+CUST_0041,Tech & Gadget Aficionado,45-54,"San Francisco, CA",Gold,3527,Electronics,active,11,1535.15,2026-10-04 21:33:00,139.56
+CUST_0042,Tech & Gadget Aficionado,25-34,"Seattle, WA",Silver,4833,Electronics,active,12,1689.79,2026-08-04 09:13:00,140.82
+CUST_0043,High-Value Enthusiast,45-54,"Seattle, WA",Platinum,4697,Coffee & Kitchen,active,14,4941.58,2026-09-05 19:14:00,352.97
+CUST_0044,Tech & Gadget Aficionado,45-54,"Austin, TX",Bronze,2225,Electronics,active,5,831.86,2026-05-11 15:23:00,166.37
+CUST_0045,Casual Budget Shopper,25-34,"Seattle, WA",Bronze,564,Beauty & Skincare,active,4,335.93,2026-06-11 18:43:00,83.98
+CUST_0046,Health & Wellness Regular,25-34,"New York, NY",Silver,1671,Health & Fitness,active,10,1196.8,2026-10-22 20:47:00,119.68
+CUST_0047,Health & Wellness Regular,25-34,"Denver, CO",Silver,4103,Health & Fitness,active,7,511.91,2026-08-30 18:48:00,73.13
+CUST_0048,Health & Wellness Regular,18-24,"Austin, TX",Silver,3624,Health & Fitness,active,6,566.02,2026-10-16 17:47:00,94.34
+CUST_0049,Health & Wellness Regular,18-24,"Austin, TX",Bronze,3587,Health & Fitness,active,8,2541.79,2026-08-27 18:08:00,317.72
+CUST_0050,Casual Budget Shopper,35-44,"New York, NY",Silver,480,Electronics,active,6,811.15,2026-05-05 11:52:00,135.19
+CUST_0051,High-Value Enthusiast,35-44,"Boston, MA",Platinum,5532,Coffee & Kitchen,active,10,2270.13,2026-08-20 10:26:00,227.01
+CUST_0052,Casual Budget Shopper,55+,"Austin, TX",Silver,100,Beauty & Skincare,active,3,182.3,2026-08-28 14:16:00,60.77
+CUST_0053,Tech & Gadget Aficionado,45-54,"Chicago, IL",Bronze,1385,Electronics,active,6,1099.87,2026-09-10 18:46:00,183.31
+CUST_0054,Tech & Gadget Aficionado,18-24,"Denver, CO",Bronze,4270,Electronics,active,10,1789.76,2026-08-25 14:01:00,178.98
+CUST_0055,Tech & Gadget Aficionado,45-54,"Chicago, IL",Bronze,2082,Electronics,active,11,1788.71,2026-09-29 10:49:00,162.61
+CUST_0056,Tech & Gadget Aficionado,25-34,"San Francisco, CA",Gold,2786,Electronics,active,4,749.59,2026-10-19 08:34:00,187.4
+CUST_0057,Tech & Gadget Aficionado,25-34,"Miami, FL",Gold,1444,Electronics,active,12,2923.88,2026-10-05 14:30:00,243.66
+CUST_0058,Casual Budget Shopper,25-34,"Seattle, WA",Bronze,939,Home & Living,active,5,492.9,2026-10-02 15:05:00,98.58
+CUST_0059,Tech & Gadget Aficionado,35-44,"San Francisco, CA",Silver,2057,Electronics,active,10,1384.83,2026-07-09 12:05:00,138.48
+CUST_0060,Tech & Gadget Aficionado,35-44,"New York, NY",Silver,4910,Electronics,active,8,1058.12,2026-10-13 17:54:00,132.26
+CUST_0061,Casual Budget Shopper,45-54,"Chicago, IL",Bronze,193,Electronics,dormant,5,517.91,2026-10-19 11:06:00,103.58
+CUST_0062,Health & Wellness Regular,35-44,"San Francisco, CA",Silver,3060,Health & Fitness,active,11,736.04,2026-10-03 19:24:00,66.91
+CUST_0063,Health & Wellness Regular,35-44,"Miami, FL",Silver,3022,Health & Fitness,active,6,905.2,2026-10-09 14:48:00,150.87
+CUST_0064,Health & Wellness Regular,25-34,"Boston, MA",Silver,2025,Health & Fitness,active,11,877.56,2026-10-16 14:43:00,79.78
+CUST_0065,Health & Wellness Regular,25-34,"New York, NY",Silver,2321,Health & Fitness,active,9,813.0,2026-10-07 10:17:00,90.33
+CUST_0066,Health & Wellness Regular,35-44,"Miami, FL",Silver,4222,Health & Fitness,active,11,1144.48,2026-07-21 17:31:00,104.04
+CUST_0067,Casual Budget Shopper,25-34,"Austin, TX",Bronze,631,Electronics,active,3,989.91,2026-09-07 16:40:00,329.97
+CUST_0068,Health & Wellness Regular,18-24,"Chicago, IL",Silver,2440,Health & Fitness,active,7,504.31,2026-09-27 10:52:00,72.04
+CUST_0069,Casual Budget Shopper,18-24,"New York, NY",Bronze,1023,Electronics,active,4,509.92,2026-09-02 09:26:00,127.48
+CUST_0070,High-Value Enthusiast,25-34,"Chicago, IL",Platinum,9291,Electronics,active,12,2555.67,2026-10-13 13:20:00,212.97
+CUST_0071,Tech & Gadget Aficionado,18-24,"New York, NY",Gold,1373,Electronics,active,9,2937.41,2026-09-09 20:44:00,326.38
+CUST_0072,Casual Budget Shopper,25-34,"Denver, CO",Bronze,560,Beauty & Skincare,active,6,383.9,2026-03-24 12:54:00,63.98
+CUST_0073,Casual Budget Shopper,35-44,"Miami, FL",Silver,956,Electronics,active,2,254.55,2025-08-19 21:35:00,127.28
+CUST_0074,Casual Budget Shopper,25-34,"Denver, CO",Silver,1022,Home & Living,active,4,321.05,2025-08-12 12:44:00,80.26
+CUST_0075,Tech & Gadget Aficionado,35-44,"Denver, CO",Silver,2749,Electronics,active,4,800.77,2026-10-10 16:28:00,200.19
+CUST_0076,Health & Wellness Regular,35-44,"Chicago, IL",Bronze,3219,Health & Fitness,active,6,569.87,2026-07-30 16:13:00,94.98
+CUST_0077,Casual Budget Shopper,18-24,"Austin, TX",Bronze,362,Electronics,active,2,182.96,2026-03-21 09:11:00,91.48
+CUST_0078,Health & Wellness Regular,25-34,"Denver, CO",Silver,2294,Health & Fitness,active,8,783.51,2026-09-15 20:33:00,97.94
+CUST_0079,Casual Budget Shopper,25-34,"New York, NY",Silver,829,Home & Living,active,2,186.15,2026-05-23 18:36:00,93.08
+CUST_0080,Tech & Gadget Aficionado,35-44,"Boston, MA",Silver,4973,Electronics,active,5,610.75,2026-02-16 15:42:00,122.15
+CUST_0081,Casual Budget Shopper,45-54,"Denver, CO",Bronze,942,Home & Living,active,3,491.9,2026-05-29 15:18:00,163.97
+CUST_0082,Tech & Gadget Aficionado,35-44,"Boston, MA",Silver,4328,Electronics,active,7,1180.69,2026-09-18 13:15:00,168.67
+CUST_0083,Occasional Gifter,55+,"New York, NY",Bronze,464,Coffee & Kitchen,active,2,496.94,2026-09-09 08:08:00,248.47
+CUST_0084,Casual Budget Shopper,18-24,"Boston, MA",Bronze,995,Beauty & Skincare,active,6,822.84,2026-09-06 09:45:00,137.14
+CUST_0085,Tech & Gadget Aficionado,25-34,"Miami, FL",Silver,3605,Electronics,active,9,933.71,2026-10-03 19:05:00,103.75
+CUST_0086,Tech & Gadget Aficionado,55+,"Boston, MA",Bronze,1170,Electronics,active,8,1082.86,2026-10-05 10:05:00,135.36
+CUST_0087,Health & Wellness Regular,35-44,"New York, NY",Gold,3466,Health & Fitness,active,9,646.91,2026-07-17 10:17:00,71.88
+CUST_0088,Tech & Gadget Aficionado,18-24,"New York, NY",Silver,2525,Electronics,active,6,949.84,2026-09-12 19:43:00,158.31
+CUST_0089,Tech & Gadget Aficionado,18-24,"Austin, TX",Bronze,4379,Electronics,active,3,331.93,2026-04-20 17:40:00,110.64
+CUST_0090,Casual Budget Shopper,35-44,"Chicago, IL",Bronze,574,Home & Living,active,2,217.96,2026-05-26 19:49:00,108.98
+CUST_0091,Health & Wellness Regular,35-44,"San Francisco, CA",Silver,1941,Health & Fitness,active,5,440.65,2026-08-06 19:06:00,88.13
+CUST_0092,Occasional Gifter,18-24,"New York, NY",Bronze,475,Coffee & Kitchen,active,2,368.95,2026-05-03 20:23:00,184.48
+CUST_0093,Occasional Gifter,25-34,"Chicago, IL",Bronze,38,Beauty & Skincare,active,2,508.96,2025-10-04 11:42:00,254.48
+CUST_0094,Casual Budget Shopper,45-54,"San Francisco, CA",Bronze,134,Home & Living,active,4,623.9,2025-12-24 13:07:00,155.98
+CUST_0095,Casual Budget Shopper,18-24,"Miami, FL",Bronze,910,Home & Living,active,3,291.93,2026-10-17 19:31:00,97.31
+CUST_0096,Occasional Gifter,35-44,"Denver, CO",Bronze,362,Beauty & Skincare,active,2,89.97,2025-06-30 12:44:00,44.98
+CUST_0097,Casual Budget Shopper,55+,"Seattle, WA",Bronze,1152,Home & Living,active,6,849.86,2026-10-01 11:39:00,141.64
+CUST_0098,Casual Budget Shopper,35-44,"Miami, FL",Silver,227,Home & Living,dormant,3,334.31,2026-06-14 08:47:00,111.44
+CUST_0099,Tech & Gadget Aficionado,25-34,"Boston, MA",Silver,4549,Electronics,active,6,577.49,2026-10-05 11:55:00,96.25
+CUST_0100,Casual Budget Shopper,25-34,"Chicago, IL",Bronze,579,Home & Living,active,4,475.87,2026-05-09 21:04:00,118.97
+CUST_0101,Health & Wellness Regular,45-54,"New York, NY",Silver,2165,Health & Fitness,active,12,1153.95,2026-03-16 10:48:00,96.16
+CUST_0102,High-Value Enthusiast,35-44,"Denver, CO",Platinum,6937,Home & Living,active,15,1306.93,2026-07-26 15:47:00,87.13
+CUST_0103,Health & Wellness Regular,35-44,"Denver, CO",Silver,1362,Health & Fitness,active,11,1063.72,2026-10-18 19:20:00,96.7
+CUST_0104,Tech & Gadget Aficionado,25-34,"Chicago, IL",Silver,3523,Electronics,active,10,1457.1,2026-09-28 17:31:00,145.71
+CUST_0105,Health & Wellness Regular,25-34,"Boston, MA",Gold,5108,Health & Fitness,active,8,564.15,2026-08-18 20:26:00,70.52
+CUST_0106,Tech & Gadget Aficionado,35-44,"Seattle, WA",Silver,2388,Electronics,active,10,1563.42,2026-10-15 17:59:00,156.34
+CUST_0107,High-Value Enthusiast,25-34,"San Francisco, CA",Platinum,14307,Coffee & Kitchen,active,13,4225.79,2026-09-15 21:39:00,325.06
+CUST_0108,Tech & Gadget Aficionado,35-44,"Seattle, WA",Silver,4797,Electronics,active,10,1463.74,2026-08-10 20:47:00,146.37
+CUST_0109,Health & Wellness Regular,55+,"Chicago, IL",Bronze,3556,Health & Fitness,active,6,975.86,2026-08-02 17:16:00,162.64
+CUST_0110,Tech & Gadget Aficionado,18-24,"Austin, TX",Bronze,946,Electronics,active,11,2664.68,2026-10-10 13:13:00,242.24
+CUST_0111,Health & Wellness Regular,35-44,"Austin, TX",Silver,4621,Health & Fitness,active,5,420.74,2026-05-21 11:16:00,84.15
+CUST_0112,High-Value Enthusiast,18-24,"Seattle, WA",Platinum,10216,Electronics,active,17,2385.53,2026-10-16 21:31:00,140.33
+CUST_0113,Tech & Gadget Aficionado,18-24,"Denver, CO",Bronze,1035,Electronics,active,12,3688.76,2026-08-04 11:04:00,307.4
+CUST_0114,Health & Wellness Regular,18-24,"New York, NY",Bronze,5210,Health & Fitness,active,5,399.87,2026-10-23 18:07:00,79.97
+CUST_0115,Occasional Gifter,18-24,"Chicago, IL",Bronze,60,Coffee & Kitchen,active,3,576.91,2026-09-24 08:38:00,192.3
+CUST_0116,Casual Budget Shopper,25-34,"Boston, MA",Bronze,956,Home & Living,dormant,5,617.89,2026-10-10 08:42:00,123.58
+CUST_0117,Occasional Gifter,25-34,"New York, NY",Bronze,312,Beauty & Skincare,dormant,2,153.95,2025-10-10 12:35:00,76.97
+CUST_0118,Tech & Gadget Aficionado,25-34,"San Francisco, CA",Bronze,1923,Electronics,active,4,562.91,2026-10-16 18:53:00,140.73
+CUST_0119,Health & Wellness Regular,25-34,"Boston, MA",Silver,5464,Health & Fitness,active,7,756.94,2026-07-19 17:01:00,108.13
+CUST_0120,Health & Wellness Regular,18-24,"Seattle, WA",Silver,4319,Health & Fitness,active,6,424.52,2026-04-17 17:38:00,70.75
+CUST_0121,High-Value Enthusiast,25-34,"Seattle, WA",Platinum,13240,Home & Living,active,14,1267.03,2026-05-08 13:36:00,90.5
+CUST_0122,Casual Budget Shopper,45-54,"Boston, MA",Bronze,510,Electronics,active,5,1090.88,2026-02-21 12:25:00,218.18
+CUST_0123,Tech & Gadget Aficionado,18-24,"New York, NY",Bronze,3019,Electronics,active,8,2026.73,2026-10-02 08:47:00,253.34
+CUST_0124,Health & Wellness Regular,45-54,"Seattle, WA",Silver,4439,Health & Fitness,active,9,739.82,2026-04-29 19:18:00,82.2
+CUST_0125,Casual Budget Shopper,35-44,"Seattle, WA",Bronze,1061,Home & Living,active,3,390.93,2026-09-15 17:54:00,130.31
+CUST_0126,High-Value Enthusiast,25-34,"Miami, FL",Platinum,3423,Coffee & Kitchen,active,13,2025.21,2026-09-16 18:09:00,155.79
+CUST_0127,Tech & Gadget Aficionado,35-44,"New York, NY",Gold,2707,Electronics,active,9,1708.91,2026-01-15 20:04:00,189.88
+CUST_0128,Health & Wellness Regular,35-44,"Austin, TX",Silver,5937,Health & Fitness,active,4,450.19,2026-10-20 17:59:00,112.55
+CUST_0129,Health & Wellness Regular,25-34,"Boston, MA",Silver,4628,Health & Fitness,active,6,475.81,2026-08-13 09:53:00,79.3
+CUST_0130,Occasional Gifter,25-34,"Boston, MA",Bronze,170,Coffee & Kitchen,active,1,396.95,2026-04-03 15:25:00,396.95
+CUST_0131,Casual Budget Shopper,25-34,"Denver, CO",Bronze,870,Electronics,active,4,481.89,2026-03-02 10:36:00,120.47
+CUST_0132,High-Value Enthusiast,25-34,"San Francisco, CA",Platinum,9622,Home & Living,active,18,1823.69,2026-09-25 17:27:00,101.32
+CUST_0133,Casual Budget Shopper,18-24,"Denver, CO",Bronze,434,Electronics,active,5,977.88,2026-04-25 17:30:00,195.58
+CUST_0134,Casual Budget Shopper,35-44,"New York, NY",Bronze,1174,Beauty & Skincare,dormant,4,512.84,2026-01-26 09:00:00,128.21
+CUST_0135,Health & Wellness Regular,35-44,"San Francisco, CA",Bronze,5761,Health & Fitness,active,10,844.75,2026-10-21 11:35:00,84.48
+CUST_0136,Health & Wellness Regular,25-34,"Austin, TX",Silver,712,Health & Fitness,active,6,560.34,2026-09-19 19:17:00,93.39
+CUST_0137,Health & Wellness Regular,18-24,"San Francisco, CA",Silver,1562,Health & Fitness,active,12,1451.31,2026-09-17 10:15:00,120.94
+CUST_0138,Health & Wellness Regular,25-34,"Seattle, WA",Silver,2839,Health & Fitness,active,11,2908.6,2026-08-29 09:07:00,264.42
+CUST_0139,Health & Wellness Regular,25-34,"Denver, CO",Bronze,5115,Health & Fitness,active,9,634.8,2026-08-07 15:30:00,70.53
+CUST_0140,High-Value Enthusiast,25-34,"Austin, TX",Platinum,7526,Electronics,active,18,2706.04,2026-10-04 16:57:00,150.34
+CUST_0141,Tech & Gadget Aficionado,35-44,"Seattle, WA",Gold,2817,Electronics,active,10,2913.08,2026-10-02 16:36:00,291.31
+CUST_0142,Casual Budget Shopper,45-54,"Denver, CO",Silver,964,Electronics,active,4,517.67,2026-10-13 19:43:00,129.42
+CUST_0143,Tech & Gadget Aficionado,35-44,"Boston, MA",Silver,3136,Electronics,active,11,1633.74,2026-08-25 10:20:00,148.52
+CUST_0144,Casual Budget Shopper,55+,"Chicago, IL",Bronze,528,Home & Living,active,6,576.85,2026-06-08 12:16:00,96.14
+CUST_0145,Casual Budget Shopper,35-44,"Boston, MA",Bronze,361,Home & Living,dormant,3,328.94,2026-10-03 10:20:00,109.65
+CUST_0146,High-Value Enthusiast,55+,"Miami, FL",Platinum,10213,Coffee & Kitchen,active,20,3226.97,2026-10-22 12:46:00,161.35
+CUST_0147,Health & Wellness Regular,25-34,"Austin, TX",Silver,5963,Health & Fitness,active,11,1105.55,2026-07-31 12:52:00,100.5
+CUST_0148,Occasional Gifter,18-24,"Seattle, WA",Bronze,173,Coffee & Kitchen,active,3,572.89,2025-09-17 13:01:00,190.96
+CUST_0149,Casual Budget Shopper,45-54,"Boston, MA",Silver,1049,Electronics,active,5,889.07,2026-05-15 21:04:00,177.81
+CUST_0150,High-Value Enthusiast,35-44,"Seattle, WA",Platinum,4480,Electronics,active,20,2887.06,2026-09-12 16:20:00,144.35
+CUST_0151,Occasional Gifter,35-44,"San Francisco, CA",Bronze,227,Beauty & Skincare,active,2,230.95,2026-05-24 14:52:00,115.48
+CUST_0152,Occasional Gifter,18-24,"New York, NY",Bronze,150,Coffee & Kitchen,active,3,765.92,2026-08-21 16:34:00,255.31
+CUST_0153,High-Value Enthusiast,25-34,"Austin, TX",Gold,4293,Home & Living,active,13,1222.78,2026-09-26 08:36:00,94.06
+CUST_0154,Casual Budget Shopper,35-44,"Chicago, IL",Bronze,343,Beauty & Skincare,active,3,218.93,2026-09-10 14:08:00,72.98
+CUST_0155,Tech & Gadget Aficionado,25-34,"New York, NY",Gold,4311,Electronics,active,7,755.86,2026-10-18 10:01:00,107.98
+CUST_0156,Occasional Gifter,35-44,"Austin, TX",Bronze,37,Coffee & Kitchen,dormant,1,49.98,2026-03-02 08:15:00,49.98
+CUST_0157,Occasional Gifter,25-34,"Boston, MA",Bronze,353,Coffee & Kitchen,active,3,697.93,2026-09-05 12:03:00,232.64
+CUST_0158,Tech & Gadget Aficionado,55+,"Denver, CO",Bronze,3624,Electronics,active,7,1269.85,2026-08-23 20:14:00,181.41
+CUST_0159,Health & Wellness Regular,35-44,"Seattle, WA",Bronze,5992,Health & Fitness,active,12,1208.74,2026-10-01 08:05:00,100.73
+CUST_0160,Tech & Gadget Aficionado,18-24,"New York, NY",Gold,4569,Electronics,active,9,1707.96,2026-10-22 16:18:00,189.77
+CUST_0161,Casual Budget Shopper,45-54,"Chicago, IL",Bronze,771,Beauty & Skincare,active,2,276.94,2026-05-01 18:54:00,138.47
+CUST_0162,Health & Wellness Regular,35-44,"Austin, TX",Silver,5740,Health & Fitness,active,9,1055.26,2026-07-14 20:51:00,117.25
+CUST_0163,Health & Wellness Regular,25-34,"Denver, CO",Bronze,3588,Health & Fitness,active,5,428.86,2026-07-25 08:19:00,85.77
+CUST_0164,Casual Budget Shopper,18-24,"Seattle, WA",Bronze,900,Beauty & Skincare,active,5,401.9,2026-06-28 16:42:00,80.38
+CUST_0165,Casual Budget Shopper,45-54,"Miami, FL",Bronze,608,Beauty & Skincare,active,2,148.97,2026-08-26 16:57:00,74.48
+CUST_0166,Casual Budget Shopper,25-34,"Seattle, WA",Bronze,743,Beauty & Skincare,active,5,408.86,2026-10-08 11:15:00,81.77
+CUST_0167,High-Value Enthusiast,35-44,"Chicago, IL",Platinum,14865,Home & Living,active,16,1602.74,2026-06-16 19:06:00,100.17
+CUST_0168,Occasional Gifter,55+,"Miami, FL",Bronze,46,Coffee & Kitchen,active,1,29.99,2025-08-28 19:02:00,29.99
+CUST_0169,Health & Wellness Regular,25-34,"Seattle, WA",Silver,5830,Health & Fitness,active,11,902.28,2026-10-05 21:51:00,82.03
+CUST_0170,Occasional Gifter,18-24,"Chicago, IL",Bronze,241,Beauty & Skincare,active,1,14.99,2025-03-26 19:12:00,14.99
+CUST_0171,Occasional Gifter,25-34,"Chicago, IL",Bronze,331,Beauty & Skincare,active,3,484.93,2026-09-12 20:02:00,161.64
+CUST_0172,Health & Wellness Regular,35-44,"Boston, MA",Bronze,971,Health & Fitness,active,7,764.81,2026-10-14 19:25:00,109.26
+CUST_0173,Occasional Gifter,25-34,"Denver, CO",Bronze,59,Beauty & Skincare,active,2,331.95,2025-11-01 14:13:00,165.98
+CUST_0174,Health & Wellness Regular,25-34,"Miami, FL",Silver,5025,Health & Fitness,active,10,962.13,2026-02-17 20:01:00,96.21
+CUST_0175,Health & Wellness Regular,35-44,"Austin, TX",Gold,5965,Health & Fitness,active,4,358.11,2026-04-29 19:10:00,89.53
+CUST_0176,High-Value Enthusiast,25-34,"Boston, MA",Platinum,7583,Coffee & Kitchen,active,9,2916.93,2026-07-03 19:44:00,324.1
+CUST_0177,Casual Budget Shopper,25-34,"Denver, CO",Silver,792,Beauty & Skincare,dormant,4,755.11,2026-09-05 10:56:00,188.78
+CUST_0178,Tech & Gadget Aficionado,45-54,"Miami, FL",Bronze,2760,Electronics,active,4,680.85,2026-09-30 09:09:00,170.21
+CUST_0179,Tech & Gadget Aficionado,18-24,"Denver, CO",Bronze,2237,Electronics,active,9,1420.83,2026-08-10 08:46:00,157.87
+CUST_0180,Health & Wellness Regular,35-44,"New York, NY",Bronze,3332,Health & Fitness,active,4,467.91,2026-04-05 10:59:00,116.98
+CUST_0181,Tech & Gadget Aficionado,18-24,"Chicago, IL",Bronze,2197,Electronics,active,11,2337.72,2026-09-10 19:03:00,212.52
+CUST_0182,Health & Wellness Regular,45-54,"Chicago, IL",Silver,1808,Health & Fitness,active,3,138.65,2026-07-08 17:25:00,46.22
+CUST_0183,Casual Budget Shopper,35-44,"Seattle, WA",Silver,346,Beauty & Skincare,active,5,489.11,2026-10-01 15:12:00,97.82
+CUST_0184,Casual Budget Shopper,18-24,"New York, NY",Bronze,783,Beauty & Skincare,active,5,453.89,2026-09-18 17:02:00,90.78
+CUST_0185,High-Value Enthusiast,25-34,"Austin, TX",Platinum,11619,Coffee & Kitchen,active,9,3709.96,2026-09-19 15:24:00,412.22
+CUST_0186,Casual Budget Shopper,25-34,"Miami, FL",Bronze,273,Home & Living,active,2,310.95,2026-09-12 16:51:00,155.48
+CUST_0187,Occasional Gifter,18-24,"Seattle, WA",Bronze,234,Beauty & Skincare,active,2,155.94,2026-07-06 18:21:00,77.97
+CUST_0188,Health & Wellness Regular,25-34,"San Francisco, CA",Silver,4233,Health & Fitness,active,8,966.91,2026-09-22 21:06:00,120.86
+CUST_0189,High-Value Enthusiast,18-24,"Austin, TX",Gold,7505,Home & Living,active,18,1587.18,2026-10-04 11:59:00,88.18
+CUST_0190,Health & Wellness Regular,25-34,"Miami, FL",Silver,5493,Health & Fitness,active,5,616.43,2026-10-21 09:07:00,123.29
+CUST_0191,Health & Wellness Regular,25-34,"Boston, MA",Bronze,1537,Health & Fitness,active,12,881.8,2026-09-30 13:58:00,73.48
+CUST_0192,Casual Budget Shopper,35-44,"Chicago, IL",Bronze,517,Home & Living,active,2,213.95,2026-03-30 15:53:00,106.98
+CUST_0193,Health & Wellness Regular,25-34,"San Francisco, CA",Silver,3160,Health & Fitness,active,5,644.94,2026-07-22 13:33:00,128.99
+CUST_0194,Casual Budget Shopper,25-34,"Austin, TX",Bronze,1021,Beauty & Skincare,active,2,213.96,2026-08-02 16:00:00,106.98
+CUST_0195,High-Value Enthusiast,25-34,"Miami, FL",Platinum,12115,Coffee & Kitchen,active,11,3302.82,2026-06-22 16:54:00,300.26
+CUST_0196,Health & Wellness Regular,35-44,"Miami, FL",Silver,3965,Health & Fitness,active,8,1132.21,2026-07-14 15:18:00,141.53
+CUST_0197,Tech & Gadget Aficionado,35-44,"Boston, MA",Gold,921,Electronics,active,9,1688.12,2026-10-18 08:50:00,187.57
+CUST_0198,Occasional Gifter,35-44,"Miami, FL",Bronze,53,Beauty & Skincare,active,3,361.87,2026-09-01 16:27:00,120.62
+CUST_0199,Health & Wellness Regular,45-54,"Miami, FL",Gold,3611,Health & Fitness,active,8,659.51,2026-08-26 19:18:00,82.44
+CUST_0200,High-Value Enthusiast,25-34,"Chicago, IL",Platinum,12190,Home & Living,active,9,780.91,2026-05-05 19:09:00,86.77
+CUST_0201,Health & Wellness Regular,35-44,"New York, NY",Silver,5988,Health & Fitness,active,11,1310.66,2026-09-28 12:24:00,119.15
+CUST_0202,Casual Budget Shopper,25-34,"Austin, TX",Bronze,682,Home & Living,active,3,411.9,2026-06-18 10:56:00,137.3
+CUST_0203,Tech & Gadget Aficionado,18-24,"Boston, MA",Bronze,751,Electronics,active,12,1830.64,2026-07-15 20:22:00,152.55
+CUST_0204,High-Value Enthusiast,25-34,"Boston, MA",Platinum,8585,Coffee & Kitchen,active,16,9149.01,2026-08-09 14:37:00,571.81
+CUST_0205,Tech & Gadget Aficionado,35-44,"San Francisco, CA",Gold,1774,Electronics,active,11,1869.05,2026-10-02 08:09:00,169.91
+CUST_0206,Tech & Gadget Aficionado,35-44,"San Francisco, CA",Bronze,3973,Electronics,active,10,1834.76,2026-09-28 15:36:00,183.48
+CUST_0207,Health & Wellness Regular,25-34,"Seattle, WA",Bronze,4797,Health & Fitness,active,12,1100.71,2026-07-14 19:10:00,91.73
+CUST_0208,High-Value Enthusiast,25-34,"Seattle, WA",Platinum,12717,Electronics,active,15,3793.2,2026-08-03 19:34:00,252.88
+CUST_0209,Health & Wellness Regular,25-34,"Chicago, IL",Silver,5509,Health & Fitness,active,7,662.95,2026-05-29 12:58:00,94.71
+CUST_0210,High-Value Enthusiast,25-34,"Chicago, IL",Platinum,7186,Electronics,active,11,1396.25,2026-07-28 16:52:00,126.93
+CUST_0211,Tech & Gadget Aficionado,18-24,"Boston, MA",Bronze,3614,Electronics,active,12,1757.76,2026-06-02 21:28:00,146.48
+CUST_0212,Health & Wellness Regular,25-34,"Miami, FL",Bronze,946,Health & Fitness,active,7,1216.82,2026-03-14 12:16:00,173.83
+CUST_0213,Health & Wellness Regular,25-34,"San Francisco, CA",Gold,5316,Health & Fitness,active,6,474.18,2026-02-19 13:46:00,79.03
+CUST_0214,Health & Wellness Regular,25-34,"Boston, MA",Bronze,3918,Health & Fitness,active,5,490.88,2026-03-15 16:36:00,98.18
+CUST_0215,High-Value Enthusiast,25-34,"Denver, CO",Platinum,8928,Coffee & Kitchen,active,15,4773.17,2026-09-29 17:46:00,318.21
+CUST_0216,Health & Wellness Regular,18-24,"Boston, MA",Silver,4892,Health & Fitness,active,12,1158.66,2026-08-20 18:05:00,96.56
+CUST_0217,High-Value Enthusiast,45-54,"Miami, FL",Gold,5754,Coffee & Kitchen,active,13,4767.0,2026-09-17 17:02:00,366.69
+CUST_0218,Health & Wellness Regular,18-24,"Chicago, IL",Gold,3462,Health & Fitness,active,6,564.2,2026-10-05 12:15:00,94.03
+CUST_0219,Tech & Gadget Aficionado,55+,"Austin, TX",Bronze,1699,Electronics,active,10,1451.78,2026-10-24 13:42:00,145.18
+CUST_0220,Tech & Gadget Aficionado,25-34,"Austin, TX",Silver,1117,Electronics,active,4,558.53,2026-08-11 12:35:00,139.63
+CUST_0221,Tech & Gadget Aficionado,35-44,"Denver, CO",Silver,4177,Electronics,active,10,1002.02,2026-10-16 20:39:00,100.2
+CUST_0222,Casual Budget Shopper,45-54,"Miami, FL",Silver,697,Beauty & Skincare,active,3,260.21,2026-07-24 15:06:00,86.74
+CUST_0223,Health & Wellness Regular,35-44,"Seattle, WA",Silver,3483,Health & Fitness,active,7,936.5,2026-09-16 10:21:00,133.79
+CUST_0224,Health & Wellness Regular,25-34,"Denver, CO",Bronze,3620,Health & Fitness,active,4,348.9,2026-10-05 13:13:00,87.22
+CUST_0225,Casual Budget Shopper,18-24,"San Francisco, CA",Bronze,1088,Home & Living,active,6,696.84,2026-10-18 08:58:00,116.14
+CUST_0226,Health & Wellness Regular,35-44,"New York, NY",Silver,5283,Health & Fitness,active,12,1191.06,2026-08-07 18:19:00,99.26
+CUST_0227,Casual Budget Shopper,25-34,"Denver, CO",Bronze,176,Home & Living,active,2,277.97,2026-04-05 15:29:00,138.99
+CUST_0228,Casual Budget Shopper,25-34,"San Francisco, CA",Bronze,403,Beauty & Skincare,active,6,565.84,2026-08-18 20:51:00,94.31
+CUST_0229,Health & Wellness Regular,25-34,"Austin, TX",Silver,2917,Health & Fitness,active,11,1180.54,2026-08-30 13:36:00,107.32
+CUST_0230,Tech & Gadget Aficionado,35-44,"New York, NY",Silver,3241,Electronics,active,10,2512.56,2026-10-06 20:53:00,251.26
+CUST_0231,High-Value Enthusiast,18-24,"Boston, MA",Gold,14857,Home & Living,active,18,1491.8,2026-09-21 13:28:00,82.88
+CUST_0232,Occasional Gifter,35-44,"Austin, TX",Bronze,170,Beauty & Skincare,active,3,570.87,2026-08-29 11:11:00,190.29
+CUST_0233,High-Value Enthusiast,25-34,"Boston, MA",Gold,14613,Coffee & Kitchen,active,11,2153.41,2026-09-29 10:13:00,195.76
+CUST_0234,Tech & Gadget Aficionado,25-34,"Miami, FL",Gold,4812,Electronics,active,4,560.61,2026-08-21 08:08:00,140.15
+CUST_0235,High-Value Enthusiast,35-44,"Miami, FL",Gold,8060,Coffee & Kitchen,active,12,2695.27,2026-09-14 11:08:00,224.61
+CUST_0236,Occasional Gifter,25-34,"Denver, CO",Bronze,98,Beauty & Skincare,dormant,2,287.95,2026-09-25 17:32:00,143.98
+CUST_0237,Tech & Gadget Aficionado,25-34,"San Francisco, CA",Silver,4921,Electronics,active,11,1390.52,2026-10-24 09:01:00,126.41
+CUST_0238,Casual Budget Shopper,45-54,"New York, NY",Bronze,318,Electronics,active,4,989.93,2026-06-30 19:47:00,247.48
+CUST_0239,Tech & Gadget Aficionado,45-54,"Austin, TX",Silver,857,Electronics,active,8,953.65,2026-07-26 21:16:00,119.21
+CUST_0240,Health & Wellness Regular,35-44,"Chicago, IL",Gold,5601,Health & Fitness,active,8,852.15,2026-10-21 10:48:00,106.52
+CUST_0241,Tech & Gadget Aficionado,35-44,"Denver, CO",Bronze,2459,Electronics,active,5,1031.88,2026-10-14 08:28:00,206.38
+CUST_0242,Tech & Gadget Aficionado,45-54,"Denver, CO",Gold,2089,Electronics,active,4,678.45,2026-07-17 13:44:00,169.61
+CUST_0243,Tech & Gadget Aficionado,45-54,"Denver, CO",Silver,2808,Electronics,active,8,885.24,2026-05-07 20:58:00,110.66
+CUST_0244,Casual Budget Shopper,25-34,"Boston, MA",Silver,458,Electronics,active,4,826.42,2026-08-30 09:01:00,206.6
+CUST_0245,Tech & Gadget Aficionado,35-44,"Miami, FL",Silver,1340,Electronics,active,8,1364.97,2026-10-19 11:16:00,170.62
+CUST_0246,Casual Budget Shopper,25-34,"San Francisco, CA",Bronze,378,Home & Living,active,4,446.91,2026-09-03 19:11:00,111.73
+CUST_0247,Health & Wellness Regular,45-54,"San Francisco, CA",Gold,2418,Health & Fitness,active,5,504.76,2026-05-19 13:43:00,100.95
+CUST_0248,Casual Budget Shopper,45-54,"New York, NY",Bronze,861,Electronics,active,3,709.94,2026-03-28 21:35:00,236.65
+CUST_0249,Tech & Gadget Aficionado,18-24,"Chicago, IL",Bronze,1311,Electronics,active,12,1650.74,2026-08-10 15:25:00,137.56
+CUST_0250,Casual Budget Shopper,35-44,"Austin, TX",Bronze,637,Home & Living,active,3,395.93,2026-10-19 13:09:00,131.98
+CUST_0251,High-Value Enthusiast,35-44,"Denver, CO",Platinum,4298,Coffee & Kitchen,active,16,6497.09,2026-08-31 21:18:00,406.07
+CUST_0252,Tech & Gadget Aficionado,45-54,"Boston, MA",Bronze,2860,Electronics,active,4,474.91,2026-08-12 09:28:00,118.73
+CUST_0253,Tech & Gadget Aficionado,18-24,"Chicago, IL",Silver,4244,Electronics,active,7,1009.69,2026-10-21 14:49:00,144.24
+CUST_0254,High-Value Enthusiast,45-54,"Denver, CO",Platinum,3269,Home & Living,active,19,2038.67,2026-09-02 13:56:00,107.3
+CUST_0255,Health & Wellness Regular,25-34,"Austin, TX",Bronze,612,Health & Fitness,active,12,1182.79,2026-09-18 10:25:00,98.57
+CUST_0256,Health & Wellness Regular,25-34,"Boston, MA",Bronze,1301,Health & Fitness,active,4,234.92,2026-06-13 17:07:00,58.73
+CUST_0257,Health & Wellness Regular,25-34,"New York, NY",Silver,4451,Health & Fitness,active,10,865.23,2026-10-20 16:24:00,86.52
+CUST_0258,High-Value Enthusiast,25-34,"Miami, FL",Gold,3266,Electronics,active,16,2900.29,2026-09-17 20:18:00,181.27
+CUST_0259,Casual Budget Shopper,25-34,"San Francisco, CA",Bronze,730,Beauty & Skincare,active,2,377.95,2026-07-02 15:40:00,188.98
+CUST_0260,Health & Wellness Regular,45-54,"Austin, TX",Gold,4406,Health & Fitness,active,11,789.03,2026-09-12 11:11:00,71.73
+CUST_0261,Occasional Gifter,25-34,"Austin, TX",Bronze,415,Beauty & Skincare,active,3,183.95,2025-06-12 18:57:00,61.32
+CUST_0262,Casual Budget Shopper,25-34,"Seattle, WA",Bronze,458,Beauty & Skincare,active,5,625.89,2026-05-13 10:01:00,125.18
+CUST_0263,Tech & Gadget Aficionado,25-34,"Denver, CO",Bronze,2065,Electronics,active,11,1436.81,2026-10-01 13:08:00,130.62
+CUST_0264,Tech & Gadget Aficionado,45-54,"New York, NY",Gold,3219,Electronics,active,4,546.21,2026-01-20 11:56:00,136.55
+CUST_0265,Tech & Gadget Aficionado,35-44,"Boston, MA",Gold,4102,Electronics,active,4,560.58,2026-05-05 15:24:00,140.15
+CUST_0266,Casual Budget Shopper,25-34,"Austin, TX",Bronze,1068,Home & Living,dormant,3,400.92,2026-07-02 10:56:00,133.64
+CUST_0267,Health & Wellness Regular,45-54,"Boston, MA",Bronze,5535,Health & Fitness,active,9,803.8,2026-09-30 19:25:00,89.31
+CUST_0268,Occasional Gifter,25-34,"Seattle, WA",Bronze,164,Beauty & Skincare,active,2,223.94,2026-09-02 17:50:00,111.97
+CUST_0269,Casual Budget Shopper,25-34,"Boston, MA",Bronze,959,Home & Living,active,3,525.88,2026-03-23 19:04:00,175.29
+CUST_0270,Casual Budget Shopper,45-54,"Boston, MA",Bronze,167,Beauty & Skincare,active,4,455.92,2026-10-15 16:55:00,113.98
+CUST_0271,Health & Wellness Regular,25-34,"Austin, TX",Gold,1769,Health & Fitness,active,7,369.75,2026-09-28 11:32:00,52.82
+CUST_0272,Casual Budget Shopper,35-44,"Denver, CO",Bronze,187,Beauty & Skincare,active,6,640.87,2026-09-19 10:45:00,106.81
+CUST_0273,Tech & Gadget Aficionado,25-34,"New York, NY",Silver,4185,Electronics,active,4,352.35,2026-09-07 12:06:00,88.09
+CUST_0274,Occasional Gifter,25-34,"San Francisco, CA",Bronze,293,Beauty & Skincare,active,2,270.9,2026-10-21 15:12:00,135.45
+CUST_0275,Tech & Gadget Aficionado,35-44,"Chicago, IL",Gold,712,Electronics,active,5,604.66,2026-06-27 15:28:00,120.93
+CUST_0276,Casual Budget Shopper,25-34,"Boston, MA",Silver,291,Home & Living,active,6,546.13,2026-10-02 08:58:00,91.02
+CUST_0277,Casual Budget Shopper,25-34,"Seattle, WA",Bronze,1055,Beauty & Skincare,active,3,147.95,2026-08-27 21:33:00,49.32
+CUST_0278,Casual Budget Shopper,25-34,"Denver, CO",Silver,704,Electronics,active,5,758.92,2026-03-29 19:02:00,151.78
+CUST_0279,High-Value Enthusiast,25-34,"Seattle, WA",Platinum,14662,Home & Living,active,12,1239.03,2026-10-05 20:46:00,103.25
+CUST_0280,Occasional Gifter,35-44,"Miami, FL",Bronze,260,Beauty & Skincare,active,1,140.96,2025-06-05 14:54:00,140.96
+CUST_0281,Tech & Gadget Aficionado,18-24,"Denver, CO",Bronze,3522,Electronics,active,7,1070.83,2026-09-07 20:22:00,152.98
+CUST_0282,Health & Wellness Regular,55+,"Austin, TX",Silver,1306,Health & Fitness,active,11,1211.97,2026-09-15 11:59:00,110.18
+CUST_0283,High-Value Enthusiast,25-34,"Denver, CO",Platinum,9708,Home & Living,active,19,1710.57,2026-05-30 20:42:00,90.03
+CUST_0284,High-Value Enthusiast,55+,"San Francisco, CA",Platinum,14142,Home & Living,active,8,829.39,2026-05-25 20:48:00,103.67
+CUST_0285,Tech & Gadget Aficionado,45-54,"Austin, TX",Silver,1557,Electronics,active,6,571.76,2026-07-31 14:03:00,95.29
+CUST_0286,Health & Wellness Regular,45-54,"New York, NY",Gold,4844,Health & Fitness,active,10,669.37,2026-05-23 08:01:00,66.94
+CUST_0287,Tech & Gadget Aficionado,25-34,"Miami, FL",Gold,2347,Electronics,active,12,1873.53,2026-10-16 09:01:00,156.13
+CUST_0288,Tech & Gadget Aficionado,45-54,"Seattle, WA",Gold,2552,Electronics,active,6,904.38,2026-09-20 17:27:00,150.73
+CUST_0289,Tech & Gadget Aficionado,55+,"Seattle, WA",Bronze,2980,Electronics,active,11,1738.8,2026-09-15 10:06:00,158.07
+CUST_0290,Health & Wellness Regular,18-24,"Austin, TX",Silver,5356,Health & Fitness,active,9,1154.0,2026-08-28 08:22:00,128.22
+CUST_0291,Tech & Gadget Aficionado,35-44,"Miami, FL",Gold,837,Electronics,active,9,3026.5,2026-10-02 21:24:00,336.28
+CUST_0292,Casual Budget Shopper,18-24,"New York, NY",Silver,592,Electronics,active,5,835.89,2026-04-01 21:26:00,167.18
+CUST_0293,Health & Wellness Regular,35-44,"New York, NY",Silver,5737,Health & Fitness,active,9,722.71,2026-09-21 11:27:00,80.3
+CUST_0294,Health & Wellness Regular,35-44,"Seattle, WA",Silver,3926,Health & Fitness,active,11,1101.77,2026-10-18 15:22:00,100.16
+CUST_0295,Tech & Gadget Aficionado,18-24,"New York, NY",Bronze,3904,Electronics,active,4,621.87,2026-07-04 17:55:00,155.47
+CUST_0296,Health & Wellness Regular,25-34,"Austin, TX",Silver,3215,Health & Fitness,active,11,1015.26,2026-10-16 17:04:00,92.3
+CUST_0297,Casual Budget Shopper,45-54,"Boston, MA",Bronze,808,Electronics,active,4,817.91,2026-05-05 13:18:00,204.48
+CUST_0298,Tech & Gadget Aficionado,25-34,"Seattle, WA",Silver,1654,Electronics,active,9,1340.3,2026-10-11 09:15:00,148.92
+CUST_0299,High-Value Enthusiast,25-34,"Boston, MA",Platinum,9850,Coffee & Kitchen,active,20,5265.27,2026-10-13 15:50:00,263.26
+CUST_0300,Occasional Gifter,45-54,"Miami, FL",Bronze,478,Coffee & Kitchen,active,3,495.91,2026-10-20 14:57:00,165.3
+CUST_0301,Tech & Gadget Aficionado,55+,"Denver, CO",Silver,3027,Electronics,active,8,2825.14,2026-10-08 17:20:00,353.14
+CUST_0302,Health & Wellness Regular,18-24,"Boston, MA",Silver,2572,Health & Fitness,active,9,2370.08,2026-10-14 09:26:00,263.34
+CUST_0303,Tech & Gadget Aficionado,25-34,"New York, NY",Bronze,4355,Electronics,active,5,679.92,2026-05-03 21:37:00,135.98
+CUST_0304,Tech & Gadget Aficionado,18-24,"San Francisco, CA",Silver,2666,Electronics,active,7,1214.89,2026-07-24 09:58:00,173.56
+CUST_0305,Casual Budget Shopper,35-44,"Miami, FL",Bronze,154,Electronics,active,6,1157.88,2026-09-26 13:32:00,192.98
+CUST_0306,Tech & Gadget Aficionado,25-34,"Boston, MA",Silver,2791,Electronics,active,7,845.38,2026-10-03 12:41:00,120.77
+CUST_0307,Casual Budget Shopper,35-44,"San Francisco, CA",Bronze,248,Home & Living,active,2,121.97,2025-09-21 21:50:00,60.98
+CUST_0308,Occasional Gifter,35-44,"Miami, FL",Bronze,386,Beauty & Skincare,active,1,73.97,2026-08-22 20:05:00,73.97
+CUST_0309,Health & Wellness Regular,25-34,"New York, NY",Bronze,3328,Health & Fitness,active,10,1155.75,2026-09-07 19:09:00,115.58
+CUST_0310,Casual Budget Shopper,25-34,"Austin, TX",Bronze,1105,Beauty & Skincare,active,2,145.95,2025-09-28 16:12:00,72.97
+CUST_0311,Health & Wellness Regular,25-34,"Seattle, WA",Silver,4755,Health & Fitness,active,11,1171.11,2026-10-02 13:06:00,106.46
+CUST_0312,Casual Budget Shopper,25-34,"Seattle, WA",Bronze,84,Home & Living,active,4,430.93,2026-05-21 14:33:00,107.73
+CUST_0313,High-Value Enthusiast,25-34,"Seattle, WA",Platinum,14883,Home & Living,active,20,3873.75,2026-10-14 12:20:00,193.69
+CUST_0314,Health & Wellness Regular,35-44,"Seattle, WA",Gold,5338,Health & Fitness,active,3,307.73,2026-08-30 20:13:00,102.58
+CUST_0315,Health & Wellness Regular,35-44,"Denver, CO",Bronze,5752,Health & Fitness,active,10,948.75,2026-07-10 18:13:00,94.88
+CUST_0316,Casual Budget Shopper,35-44,"Boston, MA",Bronze,546,Beauty & Skincare,active,3,289.91,2026-03-01 14:05:00,96.64
+CUST_0317,Casual Budget Shopper,25-34,"Denver, CO",Bronze,360,Home & Living,active,5,847.84,2026-02-28 08:55:00,169.57
+CUST_0318,Health & Wellness Regular,35-44,"Denver, CO",Gold,1110,Health & Fitness,active,5,264.49,2026-04-28 13:52:00,52.9
+CUST_0319,Casual Budget Shopper,25-34,"Miami, FL",Silver,1029,Electronics,active,5,939.43,2026-07-15 10:44:00,187.89
+CUST_0320,Occasional Gifter,25-34,"Miami, FL",Bronze,279,Coffee & Kitchen,active,2,127.97,2025-11-20 12:03:00,63.98
+CUST_0321,Casual Budget Shopper,35-44,"Seattle, WA",Bronze,443,Beauty & Skincare,active,3,331.91,2026-08-28 09:34:00,110.64
+CUST_0322,Tech & Gadget Aficionado,45-54,"Seattle, WA",Silver,2198,Electronics,active,5,916.64,2026-06-02 11:34:00,183.33
+CUST_0323,Casual Budget Shopper,25-34,"Denver, CO",Bronze,610,Home & Living,active,2,185.94,2026-06-30 10:06:00,92.97
+CUST_0324,Casual Budget Shopper,25-34,"Boston, MA",Silver,349,Home & Living,active,2,205.15,2025-06-27 18:22:00,102.58
+CUST_0325,Occasional Gifter,18-24,"Denver, CO",Bronze,335,Coffee & Kitchen,dormant,1,108.98,2026-04-06 15:34:00,108.98
+CUST_0326,Tech & Gadget Aficionado,45-54,"Seattle, WA",Gold,2725,Electronics,active,9,1384.9,2026-07-26 19:12:00,153.88
+CUST_0327,High-Value Enthusiast,35-44,"Chicago, IL",Gold,13974,Home & Living,active,10,1032.08,2026-09-17 21:37:00,103.21
+CUST_0328,Tech & Gadget Aficionado,25-34,"San Francisco, CA",Silver,4369,Electronics,active,8,975.48,2026-08-24 08:39:00,121.93
+CUST_0329,High-Value Enthusiast,35-44,"New York, NY",Platinum,5587,Electronics,active,13,1374.15,2026-10-14 10:57:00,105.7
+CUST_0330,Casual Budget Shopper,45-54,"Denver, CO",Bronze,458,Home & Living,active,4,516.87,2026-10-02 08:28:00,129.22
+CUST_0331,Health & Wellness Regular,45-54,"San Francisco, CA",Silver,2502,Health & Fitness,active,5,369.43,2026-09-14 15:42:00,73.89
+CUST_0332,Health & Wellness Regular,35-44,"New York, NY",Gold,2034,Health & Fitness,active,3,332.03,2026-05-14 14:16:00,110.68
+CUST_0333,Health & Wellness Regular,45-54,"New York, NY",Gold,3852,Health & Fitness,active,6,527.25,2026-09-27 13:39:00,87.88
+CUST_0334,Casual Budget Shopper,25-34,"Seattle, WA",Silver,68,Home & Living,active,4,793.14,2026-08-12 20:22:00,198.28
+CUST_0335,High-Value Enthusiast,55+,"Seattle, WA",Platinum,13507,Home & Living,active,11,2691.68,2026-09-19 09:07:00,244.7
+CUST_0336,Health & Wellness Regular,45-54,"Austin, TX",Gold,4434,Health & Fitness,active,9,960.98,2026-10-21 10:24:00,106.78
+CUST_0337,Tech & Gadget Aficionado,45-54,"Miami, FL",Bronze,4259,Electronics,active,5,847.88,2026-09-16 14:36:00,169.58
+CUST_0338,Health & Wellness Regular,35-44,"New York, NY",Silver,3016,Health & Fitness,active,8,787.38,2026-09-10 11:28:00,98.42
+CUST_0339,Health & Wellness Regular,35-44,"Austin, TX",Silver,5832,Health & Fitness,active,10,790.15,2026-10-17 17:49:00,79.02
+CUST_0340,Casual Budget Shopper,45-54,"Miami, FL",Bronze,245,Beauty & Skincare,dormant,6,800.87,2026-05-24 19:53:00,133.48
+CUST_0341,Health & Wellness Regular,45-54,"New York, NY",Bronze,2529,Health & Fitness,active,9,821.8,2026-10-09 16:00:00,91.31
+CUST_0342,Health & Wellness Regular,25-34,"Miami, FL",Silver,5293,Health & Fitness,active,8,586.0,2025-12-13 17:54:00,73.25
+CUST_0343,High-Value Enthusiast,35-44,"Chicago, IL",Gold,4936,Electronics,active,8,2628.7,2026-07-30 15:10:00,328.59
+CUST_0344,Tech & Gadget Aficionado,25-34,"Seattle, WA",Silver,2916,Electronics,active,7,1162.63,2026-09-11 21:21:00,166.09
+CUST_0345,Tech & Gadget Aficionado,25-34,"Austin, TX",Silver,4227,Electronics,active,7,1281.39,2026-08-13 17:14:00,183.06
+CUST_0346,Casual Budget Shopper,35-44,"Boston, MA",Bronze,1014,Electronics,active,6,1030.86,2026-06-08 08:17:00,171.81
+CUST_0347,Casual Budget Shopper,35-44,"San Francisco, CA",Bronze,1131,Electronics,active,4,563.89,2025-11-25 18:08:00,140.97
+CUST_0348,Occasional Gifter,18-24,"Chicago, IL",Bronze,293,Beauty & Skincare,active,1,47.98,2026-07-04 18:23:00,47.98
+CUST_0349,Casual Budget Shopper,25-34,"Chicago, IL",Bronze,1051,Beauty & Skincare,dormant,2,187.96,2025-11-17 11:44:00,93.98
+CUST_0350,Health & Wellness Regular,18-24,"Austin, TX",Silver,4342,Health & Fitness,active,4,288.74,2025-10-19 18:22:00,72.18
+CUST_0351,Health & Wellness Regular,35-44,"Seattle, WA",Silver,3843,Health & Fitness,active,10,578.35,2026-07-25 12:35:00,57.84
+CUST_0352,Tech & Gadget Aficionado,18-24,"Chicago, IL",Silver,871,Electronics,active,4,739.0,2026-01-19 20:24:00,184.75
+CUST_0353,Health & Wellness Regular,35-44,"New York, NY",Gold,1165,Health & Fitness,active,9,762.96,2026-10-10 20:05:00,84.77
+CUST_0354,Occasional Gifter,25-34,"Seattle, WA",Bronze,209,Beauty & Skincare,dormant,3,476.95,2026-09-06 09:44:00,158.98
+CUST_0355,Casual Budget Shopper,55+,"Boston, MA",Bronze,833,Home & Living,dormant,6,782.82,2026-05-30 15:22:00,130.47
+CUST_0356,Occasional Gifter,25-34,"Austin, TX",Bronze,334,Coffee & Kitchen,active,1,37.98,2025-01-28 16:38:00,37.98
+CUST_0357,Occasional Gifter,25-34,"Austin, TX",Bronze,372,Beauty & Skincare,dormant,2,243.94,2025-03-04 16:16:00,121.97
+CUST_0358,Casual Budget Shopper,55+,"Denver, CO",Bronze,1165,Home & Living,active,2,183.95,2026-04-25 21:59:00,91.98
+CUST_0359,Casual Budget Shopper,25-34,"Miami, FL",Bronze,436,Electronics,active,2,455.94,2025-10-12 15:17:00,227.97
+CUST_0360,High-Value Enthusiast,35-44,"New York, NY",Gold,4102,Coffee & Kitchen,active,19,6287.8,2026-10-04 19:40:00,330.94
+CUST_0361,Health & Wellness Regular,25-34,"New York, NY",Bronze,962,Health & Fitness,active,4,666.92,2026-04-19 09:04:00,166.73
+CUST_0362,Health & Wellness Regular,25-34,"Chicago, IL",Silver,1062,Health & Fitness,active,11,1363.95,2026-10-18 19:33:00,124.0
+CUST_0363,High-Value Enthusiast,55+,"Chicago, IL",Platinum,14985,Home & Living,active,13,1373.25,2026-09-24 19:10:00,105.63
+CUST_0364,Tech & Gadget Aficionado,35-44,"Miami, FL",Bronze,1673,Electronics,active,4,565.91,2026-05-24 20:32:00,141.48
+CUST_0365,Occasional Gifter,25-34,"Boston, MA",Bronze,153,Coffee & Kitchen,active,1,387.96,2025-07-02 17:57:00,387.96
+CUST_0366,Occasional Gifter,45-54,"Austin, TX",Bronze,320,Coffee & Kitchen,active,2,463.94,2026-05-23 20:35:00,231.97
+CUST_0367,High-Value Enthusiast,25-34,"Boston, MA",Platinum,8222,Home & Living,active,17,1808.35,2026-08-08 13:43:00,106.37
+CUST_0368,Health & Wellness Regular,18-24,"Boston, MA",Bronze,5006,Health & Fitness,active,10,613.82,2026-10-01 18:19:00,61.38
+CUST_0369,Health & Wellness Regular,45-54,"Seattle, WA",Gold,1782,Health & Fitness,active,7,502.97,2026-09-08 18:54:00,71.85
+CUST_0370,Casual Budget Shopper,45-54,"Boston, MA",Silver,1191,Electronics,active,2,208.98,2025-12-12 08:57:00,104.49
+CUST_0371,Tech & Gadget Aficionado,25-34,"San Francisco, CA",Gold,3539,Electronics,active,7,2668.34,2026-09-28 17:29:00,381.19
+CUST_0372,High-Value Enthusiast,35-44,"Chicago, IL",Gold,9179,Home & Living,active,16,1734.8,2026-10-23 13:31:00,108.42
+CUST_0373,Health & Wellness Regular,18-24,"San Francisco, CA",Bronze,5413,Health & Fitness,active,10,1183.8,2026-09-19 09:54:00,118.38
+CUST_0374,Casual Budget Shopper,35-44,"Denver, CO",Bronze,731,Home & Living,dormant,4,654.88,2026-08-21 15:48:00,163.72
+CUST_0375,High-Value Enthusiast,45-54,"San Francisco, CA",Platinum,10846,Coffee & Kitchen,active,19,4142.36,2026-09-10 15:41:00,218.02
+CUST_0376,Casual Budget Shopper,35-44,"Boston, MA",Silver,1180,Home & Living,active,6,696.22,2026-08-22 08:19:00,116.04
+CUST_0377,Tech & Gadget Aficionado,25-34,"Miami, FL",Silver,3446,Electronics,active,10,1654.63,2026-10-01 12:57:00,165.46
+CUST_0378,Health & Wellness Regular,25-34,"San Francisco, CA",Gold,4446,Health & Fitness,active,4,450.8,2026-10-23 12:03:00,112.7
+CUST_0379,Casual Budget Shopper,25-34,"Chicago, IL",Bronze,897,Beauty & Skincare,active,4,694.88,2026-08-20 10:20:00,173.72
+CUST_0380,Tech & Gadget Aficionado,18-24,"Seattle, WA",Silver,3920,Electronics,active,7,1244.33,2026-05-30 12:59:00,177.76
+CUST_0381,Tech & Gadget Aficionado,25-34,"Chicago, IL",Silver,2513,Electronics,active,4,559.48,2026-05-06 11:04:00,139.87
+CUST_0382,Health & Wellness Regular,35-44,"Miami, FL",Bronze,4602,Health & Fitness,active,4,292.9,2026-03-27 16:26:00,73.22
+CUST_0383,Occasional Gifter,35-44,"Denver, CO",Bronze,235,Beauty & Skincare,dormant,2,241.94,2025-10-28 17:31:00,120.97
+CUST_0384,Tech & Gadget Aficionado,18-24,"Denver, CO",Bronze,4941,Electronics,active,5,652.89,2026-09-28 13:22:00,130.58
+CUST_0385,Occasional Gifter,55+,"New York, NY",Bronze,429,Beauty & Skincare,dormant,1,48.98,2026-06-10 09:07:00,48.98
+CUST_0386,Casual Budget Shopper,35-44,"Boston, MA",Bronze,523,Beauty & Skincare,active,2,317.95,2026-01-24 14:32:00,158.98
+CUST_0387,High-Value Enthusiast,25-34,"Miami, FL",Gold,13448,Home & Living,active,11,1225.5,2026-10-10 19:55:00,111.41
+CUST_0388,Occasional Gifter,45-54,"Denver, CO",Bronze,8,Beauty & Skincare,active,3,235.93,2025-11-17 09:08:00,78.64
+CUST_0389,Health & Wellness Regular,18-24,"Seattle, WA",Silver,2948,Health & Fitness,active,4,394.08,2026-08-03 15:06:00,98.52
+CUST_0390,High-Value Enthusiast,45-54,"Boston, MA",Platinum,5937,Coffee & Kitchen,active,14,5664.9,2026-09-01 10:03:00,404.64
+CUST_0391,Occasional Gifter,25-34,"Chicago, IL",Bronze,98,Coffee & Kitchen,dormant,2,746.93,2025-12-20 10:41:00,373.46
+CUST_0392,Tech & Gadget Aficionado,25-34,"Miami, FL",Gold,4260,Electronics,active,4,794.59,2026-02-14 11:06:00,198.65
+CUST_0393,Health & Wellness Regular,55+,"Chicago, IL",Bronze,1260,Health & Fitness,active,4,462.9,2026-04-02 08:57:00,115.72
+CUST_0394,Casual Budget Shopper,45-54,"New York, NY",Bronze,826,Home & Living,active,3,141.95,2026-05-17 12:46:00,47.32
+CUST_0395,High-Value Enthusiast,18-24,"Austin, TX",Gold,10109,Home & Living,active,17,2310.71,2026-09-14 13:24:00,135.92
+CUST_0396,Casual Budget Shopper,35-44,"San Francisco, CA",Silver,137,Beauty & Skincare,active,5,447.34,2026-08-31 08:52:00,89.47
+CUST_0397,Casual Budget Shopper,45-54,"Denver, CO",Bronze,202,Electronics,dormant,5,849.9,2026-08-25 14:45:00,169.98
+CUST_0398,Casual Budget Shopper,35-44,"New York, NY",Bronze,694,Beauty & Skincare,dormant,2,234.92,2025-06-21 10:54:00,117.46
+CUST_0399,Health & Wellness Regular,35-44,"Boston, MA",Gold,3051,Health & Fitness,active,5,577.67,2026-10-03 21:49:00,115.53
+CUST_0400,Tech & Gadget Aficionado,25-34,"Boston, MA",Silver,4928,Electronics,active,7,1130.34,2026-07-24 20:18:00,161.48
+CUST_0401,Tech & Gadget Aficionado,35-44,"Austin, TX",Silver,1142,Electronics,active,5,675.38,2026-10-11 12:02:00,135.08
+CUST_0402,Health & Wellness Regular,55+,"New York, NY",Bronze,2501,Health & Fitness,active,9,849.76,2026-08-28 18:18:00,94.42
+CUST_0403,Casual Budget Shopper,25-34,"Boston, MA",Silver,718,Beauty & Skincare,active,4,346.63,2026-02-04 17:05:00,86.66
+CUST_0404,Casual Budget Shopper,25-34,"Chicago, IL",Bronze,818,Home & Living,active,2,173.96,2025-10-15 21:40:00,86.98
+CUST_0405,Health & Wellness Regular,25-34,"Seattle, WA",Silver,1202,Health & Fitness,active,4,749.42,2026-06-28 19:11:00,187.36
+CUST_0406,High-Value Enthusiast,25-34,"Austin, TX",Platinum,8188,Electronics,active,10,1701.47,2026-07-22 13:52:00,170.15
+CUST_0407,High-Value Enthusiast,18-24,"Seattle, WA",Platinum,7419,Coffee & Kitchen,active,15,2820.66,2026-09-14 13:36:00,188.04
+CUST_0408,High-Value Enthusiast,25-34,"Denver, CO",Platinum,11395,Electronics,active,13,1559.46,2026-09-02 21:26:00,119.96
+CUST_0409,High-Value Enthusiast,18-24,"San Francisco, CA",Platinum,8315,Electronics,active,13,1614.7,2026-09-12 14:55:00,124.21
+CUST_0410,High-Value Enthusiast,25-34,"San Francisco, CA",Platinum,12167,Coffee & Kitchen,active,10,1031.61,2026-09-27 13:58:00,103.16
+CUST_0411,Health & Wellness Regular,25-34,"Boston, MA",Bronze,2802,Health & Fitness,active,10,810.74,2026-10-19 10:01:00,81.07
+CUST_0412,Tech & Gadget Aficionado,25-34,"San Francisco, CA",Bronze,2760,Electronics,active,7,1097.84,2026-06-29 16:07:00,156.83
+CUST_0413,Health & Wellness Regular,25-34,"San Francisco, CA",Silver,2620,Health & Fitness,active,9,851.02,2026-08-23 20:26:00,94.56
+CUST_0414,Casual Budget Shopper,25-34,"Chicago, IL",Bronze,327,Home & Living,active,2,323.92,2026-04-07 14:23:00,161.96
+CUST_0415,Tech & Gadget Aficionado,45-54,"Boston, MA",Gold,3199,Electronics,active,4,704.61,2026-01-09 20:00:00,176.15
+CUST_0416,Health & Wellness Regular,25-34,"Austin, TX",Silver,5541,Health & Fitness,active,9,709.46,2026-10-03 10:48:00,78.83
+CUST_0417,Occasional Gifter,25-34,"Miami, FL",Bronze,90,Coffee & Kitchen,dormant,3,261.93,2026-07-17 10:12:00,87.31
+CUST_0418,Tech & Gadget Aficionado,35-44,"Denver, CO",Gold,2485,Electronics,active,4,430.13,2026-08-02 14:43:00,107.53
+CUST_0419,Tech & Gadget Aficionado,25-34,"Boston, MA",Silver,2136,Electronics,active,11,2008.04,2026-08-22 13:54:00,182.55
+CUST_0420,Health & Wellness Regular,25-34,"New York, NY",Gold,4381,Health & Fitness,active,11,719.71,2026-10-05 17:01:00,65.43
+CUST_0421,Occasional Gifter,25-34,"Seattle, WA",Bronze,425,Beauty & Skincare,dormant,1,75.97,2025-07-14 12:25:00,75.97
+CUST_0422,Casual Budget Shopper,25-34,"Denver, CO",Bronze,670,Beauty & Skincare,active,4,343.91,2026-04-22 13:24:00,85.98
+CUST_0423,Tech & Gadget Aficionado,25-34,"Boston, MA",Bronze,4425,Electronics,active,6,1214.85,2026-01-07 21:10:00,202.48
+CUST_0424,Health & Wellness Regular,25-34,"Boston, MA",Silver,3545,Health & Fitness,active,10,1200.56,2026-08-27 20:07:00,120.06
+CUST_0425,Casual Budget Shopper,45-54,"San Francisco, CA",Bronze,558,Electronics,active,2,427.96,2026-01-26 20:35:00,213.98
+CUST_0426,Tech & Gadget Aficionado,35-44,"Boston, MA",Gold,3216,Electronics,active,6,708.12,2026-06-12 11:22:00,118.02
+CUST_0427,Occasional Gifter,25-34,"New York, NY",Bronze,50,Coffee & Kitchen,active,2,415.94,2025-06-11 17:16:00,207.97
+CUST_0428,Casual Budget Shopper,35-44,"Chicago, IL",Bronze,851,Home & Living,active,5,311.92,2026-10-21 17:15:00,62.38
+CUST_0429,Health & Wellness Regular,25-34,"Miami, FL",Gold,4554,Health & Fitness,active,10,963.67,2026-10-21 18:23:00,96.37
+CUST_0430,High-Value Enthusiast,25-34,"San Francisco, CA",Gold,14962,Coffee & Kitchen,active,9,2687.13,2026-10-21 10:56:00,298.57
+CUST_0431,Tech & Gadget Aficionado,25-34,"Chicago, IL",Silver,3353,Electronics,active,4,1144.64,2025-11-17 21:31:00,286.16
+CUST_0432,Health & Wellness Regular,25-34,"Denver, CO",Silver,3059,Health & Fitness,active,8,995.32,2026-01-15 08:31:00,124.42
+CUST_0433,High-Value Enthusiast,35-44,"New York, NY",Platinum,13616,Coffee & Kitchen,active,12,3565.47,2026-09-19 09:57:00,297.12
+CUST_0434,Casual Budget Shopper,25-34,"Chicago, IL",Bronze,1180,Beauty & Skincare,active,4,289.92,2026-08-19 14:40:00,72.48
+CUST_0435,Health & Wellness Regular,25-34,"Boston, MA",Silver,2126,Health & Fitness,active,11,804.4,2026-10-22 12:52:00,73.13
+CUST_0436,Health & Wellness Regular,25-34,"New York, NY",Silver,2216,Health & Fitness,active,9,1175.86,2026-10-13 20:01:00,130.65
+CUST_0437,Health & Wellness Regular,25-34,"New York, NY",Silver,2285,Health & Fitness,active,11,1045.68,2026-10-17 12:54:00,95.06
+CUST_0438,Tech & Gadget Aficionado,35-44,"San Francisco, CA",Silver,4898,Electronics,active,10,1403.84,2026-10-19 15:10:00,140.38
+CUST_0439,Tech & Gadget Aficionado,25-34,"Denver, CO",Bronze,4509,Electronics,active,4,609.9,2026-09-22 10:29:00,152.48
+CUST_0440,Health & Wellness Regular,35-44,"Boston, MA",Silver,5408,Health & Fitness,active,10,851.93,2026-10-01 18:40:00,85.19
+CUST_0441,High-Value Enthusiast,25-34,"Denver, CO",Platinum,14036,Home & Living,active,11,917.72,2026-08-05 17:21:00,83.43
+CUST_0442,Casual Budget Shopper,45-54,"San Francisco, CA",Bronze,691,Beauty & Skincare,active,5,257.91,2026-09-29 15:16:00,51.58
+CUST_0443,High-Value Enthusiast,25-34,"Austin, TX",Platinum,9852,Home & Living,active,18,1712.27,2026-10-24 21:08:00,95.13
+CUST_0444,High-Value Enthusiast,25-34,"Austin, TX",Platinum,11804,Home & Living,active,19,3612.03,2026-08-27 21:54:00,190.11
+CUST_0445,Occasional Gifter,45-54,"Austin, TX",Bronze,284,Beauty & Skincare,active,2,537.93,2025-05-11 13:40:00,268.97
+CUST_0446,High-Value Enthusiast,25-34,"Denver, CO",Platinum,8882,Coffee & Kitchen,active,10,5105.65,2026-10-10 11:37:00,510.56
+CUST_0447,Health & Wellness Regular,25-34,"Boston, MA",Gold,4740,Health & Fitness,active,4,385.13,2026-10-14 09:26:00,96.28
+CUST_0448,Casual Budget Shopper,25-34,"Denver, CO",Bronze,959,Home & Living,active,5,369.89,2026-09-05 20:23:00,73.98
+CUST_0449,Health & Wellness Regular,35-44,"Chicago, IL",Bronze,2851,Health & Fitness,active,6,797.83,2026-10-23 11:45:00,132.97
+CUST_0450,Tech & Gadget Aficionado,25-34,"Denver, CO",Silver,4557,Electronics,active,6,756.07,2026-08-01 18:37:00,126.01
+CUST_0451,Health & Wellness Regular,18-24,"San Francisco, CA",Bronze,5049,Health & Fitness,active,7,803.82,2026-10-01 13:06:00,114.83
+CUST_0452,Casual Budget Shopper,25-34,"New York, NY",Bronze,953,Electronics,active,5,1225.91,2026-07-17 16:34:00,245.18
+CUST_0453,Health & Wellness Regular,35-44,"Chicago, IL",Bronze,864,Health & Fitness,active,7,439.87,2026-10-23 11:06:00,62.84
+CUST_0454,Health & Wellness Regular,25-34,"San Francisco, CA",Silver,1561,Health & Fitness,active,4,585.11,2026-10-17 10:57:00,146.28
+CUST_0455,Casual Budget Shopper,25-34,"Miami, FL",Silver,926,Beauty & Skincare,active,6,633.53,2026-10-19 21:47:00,105.59
+CUST_0456,Casual Budget Shopper,45-54,"New York, NY",Bronze,1140,Home & Living,active,3,255.94,2026-03-30 16:16:00,85.31
+CUST_0457,Tech & Gadget Aficionado,55+,"Seattle, WA",Bronze,2690,Electronics,active,10,1603.78,2026-09-17 13:44:00,160.38
+CUST_0458,Occasional Gifter,25-34,"San Francisco, CA",Bronze,69,Coffee & Kitchen,dormant,3,308.95,2026-02-13 16:00:00,102.98
+CUST_0459,Occasional Gifter,45-54,"Austin, TX",Bronze,359,Beauty & Skincare,active,1,54.99,2025-11-27 21:12:00,54.99
+CUST_0460,Casual Budget Shopper,45-54,"Boston, MA",Bronze,600,Electronics,active,3,359.95,2026-06-29 15:57:00,119.98
+CUST_0461,Health & Wellness Regular,35-44,"San Francisco, CA",Silver,2879,Health & Fitness,active,7,438.73,2026-09-13 11:12:00,62.68
+CUST_0462,Casual Budget Shopper,45-54,"Denver, CO",Silver,720,Electronics,active,2,283.06,2025-10-25 13:04:00,141.53
+CUST_0463,Casual Budget Shopper,35-44,"Denver, CO",Bronze,783,Beauty & Skincare,active,5,456.88,2026-09-03 10:16:00,91.38
+CUST_0464,Tech & Gadget Aficionado,55+,"Chicago, IL",Silver,3144,Electronics,active,10,1401.0,2026-10-13 10:15:00,140.1
+CUST_0465,Casual Budget Shopper,25-34,"Austin, TX",Bronze,1043,Home & Living,dormant,5,412.89,2026-04-27 08:54:00,82.58
+CUST_0466,Casual Budget Shopper,18-24,"Denver, CO",Bronze,373,Home & Living,active,2,249.97,2026-05-13 14:10:00,124.98
+CUST_0467,Occasional Gifter,25-34,"Austin, TX",Bronze,451,Coffee & Kitchen,active,1,387.96,2025-10-12 13:37:00,387.96
+CUST_0468,Occasional Gifter,25-34,"Miami, FL",Bronze,128,Beauty & Skincare,active,2,182.95,2026-08-28 21:16:00,91.48
+CUST_0469,Occasional Gifter,25-34,"Boston, MA",Bronze,320,Coffee & Kitchen,dormant,3,950.88,2026-07-19 20:39:00,316.96
+CUST_0470,Casual Budget Shopper,25-34,"San Francisco, CA",Bronze,52,Beauty & Skincare,active,6,723.85,2026-08-08 12:06:00,120.64
+CUST_0471,High-Value Enthusiast,25-34,"Denver, CO",Gold,14396,Electronics,active,17,2365.77,2026-10-08 12:24:00,139.16
+CUST_0472,Casual Budget Shopper,55+,"Boston, MA",Bronze,1028,Beauty & Skincare,active,3,473.92,2026-05-17 08:43:00,157.97
+CUST_0473,High-Value Enthusiast,45-54,"San Francisco, CA",Gold,7902,Coffee & Kitchen,active,18,6977.19,2026-07-30 09:29:00,387.62
+CUST_0474,Tech & Gadget Aficionado,45-54,"Austin, TX",Silver,1670,Electronics,active,8,1071.43,2026-06-04 09:17:00,133.93
+CUST_0475,High-Value Enthusiast,35-44,"Austin, TX",Platinum,14836,Coffee & Kitchen,active,12,1969.12,2026-08-05 08:37:00,164.09
+CUST_0476,Health & Wellness Regular,25-34,"Boston, MA",Silver,4224,Health & Fitness,active,4,391.31,2026-06-14 08:01:00,97.83
+CUST_0477,Casual Budget Shopper,18-24,"San Francisco, CA",Bronze,302,Electronics,active,3,332.95,2026-10-08 08:22:00,110.98
+CUST_0478,Tech & Gadget Aficionado,25-34,"Austin, TX",Bronze,1190,Electronics,active,3,459.95,2026-09-08 14:53:00,153.32
+CUST_0479,Tech & Gadget Aficionado,35-44,"Seattle, WA",Silver,719,Electronics,active,11,1666.98,2026-07-18 09:52:00,151.54
+CUST_0480,Casual Budget Shopper,35-44,"Seattle, WA",Bronze,1093,Beauty & Skincare,active,5,442.83,2026-05-22 21:21:00,88.57
+CUST_0481,Tech & Gadget Aficionado,18-24,"Chicago, IL",Silver,1423,Electronics,active,6,1011.55,2026-06-22 13:17:00,168.59
+CUST_0482,Tech & Gadget Aficionado,35-44,"San Francisco, CA",Silver,598,Electronics,active,7,694.33,2026-02-16 15:11:00,99.19
+CUST_0483,Occasional Gifter,45-54,"Austin, TX",Bronze,198,Coffee & Kitchen,active,2,379.97,2025-09-07 10:32:00,189.98
+CUST_0484,Casual Budget Shopper,35-44,"San Francisco, CA",Bronze,188,Beauty & Skincare,active,6,978.88,2026-10-09 19:42:00,163.15
+CUST_0485,High-Value Enthusiast,18-24,"Boston, MA",Platinum,13298,Home & Living,active,18,1949.43,2026-10-12 20:17:00,108.3
+CUST_0486,Health & Wellness Regular,25-34,"Boston, MA",Bronze,4995,Health & Fitness,active,10,3270.79,2026-07-26 15:21:00,327.08
+CUST_0487,Health & Wellness Regular,25-34,"San Francisco, CA",Silver,4788,Health & Fitness,active,10,1284.16,2026-09-10 13:12:00,128.42
+CUST_0488,Occasional Gifter,55+,"Austin, TX",Bronze,274,Coffee & Kitchen,active,2,367.96,2025-07-28 16:45:00,183.98
+CUST_0489,Health & Wellness Regular,45-54,"San Francisco, CA",Silver,4183,Health & Fitness,active,7,540.39,2026-04-01 09:30:00,77.2
+CUST_0490,Casual Budget Shopper,45-54,"New York, NY",Bronze,939,Beauty & Skincare,active,2,240.94,2025-10-28 15:07:00,120.47
+CUST_0491,Health & Wellness Regular,25-34,"Austin, TX",Bronze,1724,Health & Fitness,active,9,1000.77,2026-09-15 11:21:00,111.2
+CUST_0492,Casual Budget Shopper,25-34,"Miami, FL",Bronze,580,Beauty & Skincare,active,3,456.92,2026-04-09 21:54:00,152.31
+CUST_0493,Casual Budget Shopper,45-54,"San Francisco, CA",Bronze,110,Home & Living,active,5,497.89,2026-09-04 14:17:00,99.58
+CUST_0494,Tech & Gadget Aficionado,18-24,"San Francisco, CA",Silver,4684,Electronics,active,9,1020.09,2026-06-07 12:57:00,113.34
+CUST_0495,Tech & Gadget Aficionado,25-34,"Austin, TX",Silver,2589,Electronics,active,9,1830.43,2026-09-29 13:54:00,203.38
+CUST_0496,Casual Budget Shopper,45-54,"San Francisco, CA",Bronze,1092,Beauty & Skincare,active,4,409.89,2026-10-17 13:21:00,102.47
+CUST_0497,Casual Budget Shopper,25-34,"Denver, CO",Bronze,357,Beauty & Skincare,dormant,6,723.83,2026-05-25 20:39:00,120.64
+CUST_0498,Casual Budget Shopper,35-44,"Boston, MA",Bronze,558,Home & Living,dormant,6,993.86,2026-05-20 19:53:00,165.64
+CUST_0499,Tech & Gadget Aficionado,45-54,"Miami, FL",Bronze,931,Electronics,active,10,2104.75,2026-10-23 12:40:00,210.48
+CUST_0500,Tech & Gadget Aficionado,45-54,"New York, NY",Gold,1064,Electronics,active,8,1413.71,2026-09-27 13:24:00,176.71
