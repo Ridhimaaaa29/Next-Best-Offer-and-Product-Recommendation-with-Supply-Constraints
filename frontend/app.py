@@ -132,6 +132,49 @@ st.markdown(
         box-shadow: 0 8px 18px -4px rgba(15, 23, 42, 0.08);
     }
 
+    /* High-contrast Chat Message Styling */
+    [data-testid="stChatMessage"] {
+        background: white !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 14px !important;
+        padding: 16px 20px !important;
+        box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.04) !important;
+        color: #0f172a !important;
+    }
+    [data-testid="stChatMessage"] p, [data-testid="stChatMessage"] div, [data-testid="stChatMessage"] span {
+        color: #0f172a !important;
+        font-size: 0.95rem !important;
+        line-height: 1.6 !important;
+    }
+
+    /* High-contrast Action Buttons */
+    .stButton>button {
+        background: white !important;
+        color: #1e1b4b !important;
+        border: 1.5px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        padding: 10px 16px !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+    }
+    .stButton>button:hover {
+        background: #eef2ff !important;
+        border-color: #6366f1 !important;
+        color: #4338ca !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15) !important;
+    }
+    .stButton>button[kind="primary"] {
+        background: #4338ca !important;
+        color: white !important;
+        border: none !important;
+    }
+    .stButton>button[kind="primary"]:hover {
+        background: #3730a3 !important;
+        color: white !important;
+    }
+
     /* Badges */
     .badge {
         display: inline-flex;
@@ -1058,12 +1101,32 @@ def render_demo_playground() -> None:
 # ---------------------------------------------------------------------------
 
 def query_groq_assistant(prompt: str, context: Dict[str, Any]) -> str:
+    import re
     from backend.app.config import settings
+
     api_key = settings.groq_api_key or os.getenv("GROQ_API_KEY")
     if not api_key:
         return (
             "Groq API key is not configured. Please set GROQ_API_KEY in your environment or .env file."
         )
+
+    # Detect if user mentioned any specific customer ID (e.g. CUST_0005, CUST_0012)
+    mentioned_custs = re.findall(r"CUST_\d{4}", prompt, re.IGNORECASE)
+    if mentioned_custs:
+        cust_lookup = {}
+        for mcid in set(mentioned_custs):
+            mcid_upper = mcid.upper()
+            detail = load_customer_detail(mcid_upper).get("customer", {})
+            if detail:
+                cust_lookup[mcid_upper] = {
+                    "tier": detail.get("membership_tier", "Standard"),
+                    "preferred_category": detail.get("preferred_category", "General"),
+                    "total_spend": float(detail.get("total_spend", 0.0)),
+                    "total_orders": detail.get("total_orders", 0),
+                    "segment": detail.get("customer_segment", "Active"),
+                }
+        if cust_lookup:
+            context["mentioned_customers_in_query"] = cust_lookup
 
     model = os.getenv("GROQ_MODEL", settings.groq_model or "openai/gpt-oss-120b")
     system_prompt = (
@@ -1076,6 +1139,7 @@ def query_groq_assistant(prompt: str, context: Dict[str, Any]) -> str:
         "3. Personalized recommendations incorporate category affinity, prior basket interactions, and ML propensity. "
         "4. Popularity-only ranking ignores individual customer context and supply availability. "
         "5. The Laya decision layer compares feasible candidates, falling back deterministically when needed. "
+        "You can explain ANY customer in the database when requested by ID. "
         "Provide professional, concise, structured explanations. Do not fabricate unverified stock or margins."
     )
 
@@ -1091,7 +1155,7 @@ def query_groq_assistant(prompt: str, context: Dict[str, Any]) -> str:
                     {"role": "system", "content": system_prompt},
                     {
                         "role": "user",
-                        "content": f"Platform State & Customer Context:\n{context}\n\nQuestion:\n{prompt}",
+                        "content": f"Platform State & Customer Context:\n{context}\n\nUser Question:\n{prompt}",
                     },
                 ],
             },
@@ -1109,22 +1173,67 @@ def query_groq_assistant(prompt: str, context: Dict[str, Any]) -> str:
 def render_ai_assistant() -> None:
     render_hero(
         "AI Decision & Governance Assistant",
-        "Interactive LLM explanation engine powered by Groq, grounded in live catalogue and policy rulebooks.",
+        "Interactive LLM explanation engine powered by Groq, grounded in live catalogue facts and customer context.",
         tag="AI Assistant · Grounded Reasoning",
     )
 
-    curr_cust_id = st.session_state.get("selected_customer_id", "CUST_0001")
-    cust_data = load_customer_detail(curr_cust_id)
+    # All available customers selector
+    customers = load_all_customers()
+    cust_options = [c["customer_id"] for c in customers]
+    curr_id = st.session_state.get("selected_customer_id", "CUST_0001")
+    sel_idx = cust_options.index(curr_id) if curr_id in cust_options else 0
+
+    st.markdown('<div class="section-header">🎯 Active Customer Context for AI Assistant</div>', unsafe_allow_html=True)
+    c_sel_col, c_info_col = st.columns([1, 2])
+
+    with c_sel_col:
+        active_customer = st.selectbox(
+            "Select Customer to inspect:",
+            cust_options,
+            index=sel_idx,
+            key="assistant_customer_picker",
+            help="Choose any customer from the database to ground the assistant's responses.",
+        )
+        # If user changed customer, update state and add context shift message
+        if active_customer != st.session_state.get("selected_customer_id"):
+            st.session_state["selected_customer_id"] = active_customer
+            new_cust_detail = load_customer_detail(active_customer).get("customer", {})
+            st.session_state["assistant_messages"] = [
+                {
+                    "role": "assistant",
+                    "content": (
+                        f"Active context updated to **Customer `{active_customer}`** "
+                        f"({new_cust_detail.get('preferred_category', 'General')} affinity · "
+                        f"{new_cust_detail.get('membership_tier', 'Standard')} Tier). "
+                        "You can now ask questions specifically tailored to this customer or any product in the catalogue."
+                    ),
+                }
+            ]
+            st.rerun()
+
+    cust_data = load_customer_detail(active_customer)
     cust_info = cust_data.get("customer", {})
     catalogue = load_catalogue()
 
+    with c_info_col:
+        st.markdown(
+            f"<div style='background:white; border:1px solid #cbd5e1; border-radius:12px; padding:12px 18px; margin-top:4px;'>"
+            f"<strong>Customer ID:</strong> <span class='badge badge-primary'>{active_customer}</span> &nbsp; "
+            f"<strong>Tier:</strong> <span class='badge badge-purple'>{cust_info.get('membership_tier', 'Standard')}</span> &nbsp; "
+            f"<strong>Favorite Category:</strong> <span class='badge badge-slate'>{cust_info.get('preferred_category', 'Electronics')}</span> &nbsp; "
+            f"<strong>Lifetime Spend:</strong> <strong style='color:#059669;'>${float(cust_info.get('total_spend', 0)):,.2f}</strong>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+
     context_summary = {
         "active_customer": {
-            "customer_id": curr_cust_id,
+            "customer_id": active_customer,
             "tier": cust_info.get("membership_tier", "Standard"),
             "segment": cust_info.get("customer_segment", "Active"),
             "preferred_category": cust_info.get("preferred_category", "Electronics"),
-            "total_spend": cust_info.get("total_spend", 0),
+            "total_spend": float(cust_info.get("total_spend", 0.0)),
+            "total_orders": cust_info.get("total_orders", 0),
         },
         "catalogue_summary": {
             "total_skus": len(catalogue),
@@ -1139,40 +1248,46 @@ def render_ai_assistant() -> None:
     }
 
     st.markdown('<div class="section-header">💡 Interactive Demo Prompt Starters</div>', unsafe_allow_html=True)
-    st.caption("Click any demo prompt below or type your custom question in the chat input:")
+    st.caption(f"Click any starter prompt below for Customer **{active_customer}** or type your own question:")
 
     demo_prompts = [
+        f"Explain the Next-Best-Offer rationale for Customer {active_customer}",
         "Why was PROD_0010 excluded from actionable recommendations?",
         "How does the deterministic policy engine enforce the 10% margin floor?",
-        f"Explain the Next-Best-Offer rationale for Customer {curr_cust_id}",
-        "What is the difference between popularity-based ranking and personalised NBO?",
+        f"What is the recommended discount strategy for Customer {active_customer}?",
         "How does the system treat missing or unverified inventory?",
+        "What is the difference between popularity-based ranking and personalised NBO?",
     ]
 
     selected_prompt = None
-    cols = st.columns(len(demo_prompts))
-    for i, p in enumerate(demo_prompts):
-        if cols[i].button(p, key=f"demo_prompt_btn_{i}", use_container_width=True):
-            selected_prompt = p
+    row1_cols = st.columns(3)
+    for i in range(3):
+        if row1_cols[i].button(demo_prompts[i], key=f"demo_prompt_r1_{i}", use_container_width=True):
+            selected_prompt = demo_prompts[i]
+
+    row2_cols = st.columns(3)
+    for i in range(3, 6):
+        if row2_cols[i - 3].button(demo_prompts[i], key=f"demo_prompt_r2_{i}", use_container_width=True):
+            selected_prompt = demo_prompts[i]
 
     if "assistant_messages" not in st.session_state:
         st.session_state["assistant_messages"] = [
             {
                 "role": "assistant",
                 "content": (
-                    f"Hello! I am your NBO Decision Intelligence Assistant. I am grounded in live customer context "
-                    f"(`{curr_cust_id}`), product inventory facts, and deterministic margin policies. "
-                    "Select a demo prompt above or ask any question about offers, stock feasibility, or ranking logic."
+                    f"Hello! I am your NBO Decision Intelligence Assistant. I am currently grounded in live context "
+                    f"for **Customer `{active_customer}`**, real-time product inventory facts, and deterministic margin policies. "
+                    "You can ask about any customer or product in the catalogue."
                 ),
             }
         ]
 
-    user_input = st.chat_input("Ask a question about recommendation feasibility, policy exclusions, or offer rationale...")
+    user_input = st.chat_input(f"Ask about recommendations, policy rules, or Customer {active_customer}...")
     prompt_to_run = selected_prompt or user_input
 
     if prompt_to_run:
         st.session_state["assistant_messages"].append({"role": "user", "content": prompt_to_run})
-        with st.spinner("Consulting Groq reasoning engine with system context..."):
+        with st.spinner(f"Consulting Groq reasoning engine for {active_customer}..."):
             reply = query_groq_assistant(prompt_to_run, context_summary)
             st.session_state["assistant_messages"].append({"role": "assistant", "content": reply})
 
@@ -1180,6 +1295,16 @@ def render_ai_assistant() -> None:
     for msg in st.session_state["assistant_messages"]:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
+
+    if len(st.session_state["assistant_messages"]) > 2:
+        if st.button("🗑️ Reset Chat History", help="Clear conversation back to initial greeting"):
+            st.session_state["assistant_messages"] = [
+                {
+                    "role": "assistant",
+                    "content": f"Chat reset. Ready for your questions on **Customer `{active_customer}`**.",
+                }
+            ]
+            st.rerun()
 
 
 # ---------------------------------------------------------------------------
