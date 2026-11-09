@@ -12,6 +12,7 @@ from backend.app.api.schemas.decision import (
     DecisionProductResult,
     DecisionEvaluationResponse,
 )
+from backend.app.api.schemas.mcp import MCPWorkflowRequest
 
 __all__ = [
     "ErrorResponse",
@@ -26,4 +27,5 @@ __all__ = [
     "DecisionEvaluationRequest",
     "DecisionProductResult",
     "DecisionEvaluationResponse",
+    "MCPWorkflowRequest",
 ]

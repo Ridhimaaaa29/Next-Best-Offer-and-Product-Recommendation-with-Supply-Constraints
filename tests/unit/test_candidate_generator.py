@@ -52,7 +52,32 @@ def test_candidates_are_ordered_by_popularity_then_rating():
             assert current["product_rating"] >= following["product_rating"]
 
 
-def test_candidate_limit_is_applied_and_passed_to_sql(monkeypatch):
+def test_sql_includes_status_filter(monkeypatch):
+    connection, cursor = _mock_connection(
+        "Electronics",
+        [
+            (
+                "PROD_TEST",
+                "Test Product",
+                "Electronics",
+                "Accessories",
+                "Test Brand",
+                10.0,
+                4.0,
+                0.5,
+                "active",
+            )
+        ],
+    )
+    monkeypatch.setattr(candidate_generator.psycopg, "connect", lambda _: connection)
+
+    _ = candidate_generator.generate_candidates("CUST_0001")
+    # Second call is candidate query
+    candidate_sql, _ = cursor.execute.call_args_list[1].args
+    normalized_sql = re.sub(r"\s+", " ", candidate_sql)
+    assert "p.product_status = 'active'" in normalized_sql
+
+
     connection, cursor = _mock_connection(
         "Electronics",
         [

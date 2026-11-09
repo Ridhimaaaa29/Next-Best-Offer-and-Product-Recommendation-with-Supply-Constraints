@@ -3,6 +3,7 @@ FastAPI Main Application Entry Point
 Project: Next-Best-Offer and Product Recommendation with Supply Constraints
 """
 
+import sys
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 
@@ -19,10 +20,12 @@ from backend.app.api.routes.customers import router as customers_router
 from backend.app.api.routes.catalogue import router as catalogue_router
 from backend.app.api.routes.assistant import router as assistant_router
 from backend.app.api.routes.audit import router as audit_router
+from backend.app.api.routes.mcp import router as mcp_router
 
 # Initialize structured logging
 configure_logging(level=settings.log_level)
 logger = get_logger("app.main")
+logger.info(f"FastAPI starting with python_executable={sys.executable}")
 
 app = FastAPI(
     title=settings.app_title,
@@ -50,6 +53,9 @@ app.include_router(customers_router, prefix=settings.api_prefix)
 app.include_router(catalogue_router, prefix=settings.api_prefix)
 app.include_router(assistant_router, prefix=settings.api_prefix)
 app.include_router(audit_router, prefix=settings.api_prefix)
+app.include_router(mcp_router, prefix=settings.api_prefix)
 
 # Also expose /health at root for container orchestration
 app.include_router(health_router)
+app.include_router(mcp_router)
+app.include_router(assistant_router)

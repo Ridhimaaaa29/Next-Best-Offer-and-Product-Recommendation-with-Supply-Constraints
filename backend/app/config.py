@@ -63,6 +63,12 @@ class Settings(BaseSettings):
     groq_model: str = "openai/gpt-oss-120b"
     groq_base_url: str = "https://api.groq.com/openai/v1"
 
+    # ----------------------------------------------------------------
+    # Laya Decision Layer
+    # ----------------------------------------------------------------
+    laya_enabled: bool = True
+    laya_cache_dir: Path | None = PROJECT_ROOT / ".laya-cache"
+
     def __repr__(self) -> str:
         """Safe repr — never exposes DATABASE_URL or secrets."""
         return (

@@ -494,6 +494,49 @@ def fetch_recommendations(
     }
 
 
+def fetch_mcp_workflow(
+    customer_id: str,
+    top_k: int = 5,
+    reward_context: bool = False,
+    promotion_context: bool = False,
+    express_context: bool = False,
+) -> Tuple[Optional[Dict[str, Any]], int, Optional[str]]:
+    """Submit request to the FastAPI MCP workflow endpoint (POST /mcp/workflow).
+
+    Returns (result_dict, status_code, error_message).
+    """
+    url = f"{API_BASE_URL}/mcp/workflow"
+    payload = {
+        "customer_id": customer_id,
+        "top_k": top_k,
+        "reward_context": reward_context,
+        "promotion_context": promotion_context,
+        "express_context": express_context,
+    }
+    try:
+        res = requests.post(url, json=payload, timeout=90)
+        try:
+            data = res.json()
+        except Exception:
+            data = None
+
+        if res.ok:
+            return data, res.status_code, None
+        else:
+            err_msg = None
+            if isinstance(data, dict):
+                err_msg = data.get("error") or data.get("detail")
+            if not err_msg:
+                err_msg = f"Server returned HTTP status {res.status_code}"
+            return data, res.status_code, err_msg
+    except requests.exceptions.Timeout:
+        return None, 408, "The agentic workflow request timed out while awaiting tool execution."
+    except requests.exceptions.ConnectionError:
+        return None, 503, "Could not connect to the backend service. Ensure the FastAPI application is running."
+    except Exception as exc:
+        return None, 500, f"An unexpected communication error occurred: {type(exc).__name__}"
+
+
 # ---------------------------------------------------------------------------
 # Common Visual Components (Native Streamlit, Zero Code Blocks)
 # ---------------------------------------------------------------------------
@@ -868,6 +911,299 @@ def render_next_best_offer_centre() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Feature 4.5: Agentic Multi-Agent Decision Workflow (MCP)
+# ---------------------------------------------------------------------------
+
+def render_mcp_agentic_workflow() -> None:
+    render_hero(
+        "Agentic Multi-Agent Recommendation Workflow",
+        "Deterministic, multi-agent recommendation pipeline coordinated through Model Context Protocol (MCP) tools: "
+        "Customer Profiling → Recommendation Scoring → Live Inventory Verification → Hard Policy Governance → Mandatory Laya Optimization.",
+        tag="Agentic MCP Architecture",
+    )
+
+    customers = load_all_customers()
+    cust_options = [c["customer_id"] for c in customers] if customers else [f"CUST_{i:04d}" for i in range(1, 21)]
+    curr_id = st.session_state.get("selected_customer_id", "CUST_0001")
+    sel_idx = cust_options.index(curr_id) if curr_id in cust_options else 0
+
+    st.markdown('<div class="section-header">⚙️ Workflow Execution Parameters</div>', unsafe_allow_html=True)
+
+    with st.container(border=True):
+        c_cust, c_topk = st.columns([2, 1])
+        with c_cust:
+            selected_customer = st.selectbox(
+                "Target Customer Identifier:",
+                cust_options,
+                index=sel_idx,
+                key="mcp_cust_select",
+                help="Select customer profile for agentic profiling and scoring",
+            )
+            st.session_state["selected_customer_id"] = selected_customer
+        with c_topk:
+            top_k = st.select_slider("Target Recommendation Count:", options=[1, 3, 5, 8, 10], value=5, key="mcp_top_k")
+
+        st.markdown("**Operational Policy & Fulfilment Context Toggles:**")
+        col_f1, col_f2, col_f3 = st.columns(3)
+        with col_f1:
+            reward_ctx = st.toggle("🎁 Require Reward Points Eligibility", value=False, key="mcp_reward_toggle")
+        with col_f2:
+            promo_ctx = st.toggle("🏷️ Require Promotional Campaign Eligibility", value=False, key="mcp_promo_toggle")
+        with col_f3:
+            express_ctx = st.toggle("⚡ Require Express Fulfilment (≤ 7 Days)", value=False, key="mcp_express_toggle")
+
+        btn_execute = st.button("🚀 Run Agentic Multi-Agent Workflow", type="primary", use_container_width=True)
+
+    if btn_execute:
+        with st.spinner(f"Coordinating MCP agents for Customer {selected_customer}..."):
+            data, status_code, err_msg = fetch_mcp_workflow(
+                customer_id=selected_customer,
+                top_k=top_k,
+                reward_context=reward_ctx,
+                promotion_context=promo_ctx,
+                express_context=express_ctx,
+            )
+            st.session_state["mcp_last_result"] = data
+            st.session_state["mcp_last_status_code"] = status_code
+            st.session_state["mcp_last_error"] = err_msg
+            st.session_state["mcp_last_customer"] = selected_customer
+
+    if "mcp_last_result" not in st.session_state:
+        with st.container(border=True):
+            st.markdown("#### ℹ️ How the Multi-Agent MCP Workflow Operates")
+            st.caption("Each agent executes a specialized deterministic responsibility communicating exclusively through registered MCP tools:")
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                st.markdown("**1. 👤 Customer Agent**  \nRetrieves verified customer profile, interaction recency, and preferred category affinity.")
+                st.markdown("**2. 🧠 Recommendation Agent**  \nGenerates and scores candidate products matching customer preferences.")
+            with c2:
+                st.markdown("**3. 📦 Inventory Agent**  \nValidates warehouse stock levels, inventory status, and profit margin floor.")
+                st.markdown("**4. 🛡️ Policy Agent**  \nApplies authoritative business governance and strictly prunes infeasible SKUs.")
+            with c3:
+                st.markdown("**5. ⚡ Laya Agent**  \nApplies mandatory decision optimization across policy-feasible candidates.")
+                st.markdown("**6. 🎯 Decision Agent**  \nRevalidates selection against policy and constructs the final actionable offer.")
+        return
+
+    data = st.session_state.get("mcp_last_result")
+    status_code = st.session_state.get("mcp_last_status_code", 200)
+    err_msg = st.session_state.get("mcp_last_error")
+
+    if data is None:
+        st.error(f"❌ **Workflow Execution Encountered an Issue**: {err_msg}")
+        st.info("Please verify the FastAPI backend service is operational and reachable.")
+        return
+
+    status = data.get("status", "UNKNOWN")
+    agents = data.get("agents", [])
+    recommendations = data.get("recommendations", [])
+    excluded = data.get("excluded_candidates", [])
+    laya_selected_id = data.get("laya_selected_product_id")
+    laya_status = data.get("laya_status")
+    top_error = data.get("error")
+
+    # 1. Agent Execution Timeline (only rendered because we now have verified API execution evidence)
+    st.markdown('<div class="section-header">🤖 Agent Execution Timeline & Tool Verification</div>', unsafe_allow_html=True)
+    st.caption("Verifiable audit trail of autonomous agents executing sequential governance tools:")
+
+    agent_icons = {
+        "Customer Agent": "👤",
+        "Recommendation Agent": "🧠",
+        "Inventory Agent": "📦",
+        "Policy Agent": "🛡️",
+        "Laya Agent": "⚡",
+        "Decision Agent": "🎯",
+    }
+
+    for idx, agent_exec in enumerate(agents, 1):
+        ag_name = agent_exec.get("agent", f"Agent {idx}")
+        ag_resp = agent_exec.get("responsibility", "")
+        ag_status = agent_exec.get("status", "unknown")
+        ag_ms = agent_exec.get("duration_ms", 0.0)
+        ag_icon = agent_icons.get(ag_name, "⚙️")
+
+        if ag_status == "completed":
+            badge_html = f"<span class='badge badge-success'>✓ Completed · {ag_ms:.1f}ms</span>"
+        elif ag_status == "completed_with_errors":
+            badge_html = f"<span class='badge badge-warning'>⚠ Completed with Notices · {ag_ms:.1f}ms</span>"
+        elif ag_status == "skipped_no_feasible":
+            badge_html = f"<span class='badge badge-slate'>○ Skipped (No Feasible Items) · {ag_ms:.1f}ms</span>"
+        elif ag_status == "failed_laya_unavailable":
+            badge_html = f"<span class='badge badge-danger'>✕ Laya Unavailable · {ag_ms:.1f}ms</span>"
+        elif ag_status == "failed_invalid_selection":
+            badge_html = f"<span class='badge badge-danger'>✕ Invalid Selection · {ag_ms:.1f}ms</span>"
+        elif ag_status == "laya_selection_infeasible":
+            badge_html = f"<span class='badge badge-danger'>✕ Selection Infeasible · {ag_ms:.1f}ms</span>"
+        else:
+            badge_html = f"<span class='badge badge-danger'>✕ Failed Safe · {ag_ms:.1f}ms</span>"
+
+        with st.container(border=True):
+            row_l, row_r = st.columns([3, 1])
+            with row_l:
+                st.markdown(f"**{ag_icon} Stage {idx}: {ag_name}** {badge_html}", unsafe_allow_html=True)
+                st.caption(f"Responsibility: {ag_resp}")
+            with row_r:
+                st.metric("Execution Time", f"{ag_ms:.1f} ms")
+
+            ag_output = agent_exec.get("output")
+            if isinstance(ag_output, dict):
+                if "verified" in ag_output:
+                    st.markdown(f"Verified stock, warehouse status, and margins for **{ag_output.get('verified', 0)}** operational SKUs.")
+                elif "pass" in ag_output:
+                    st.markdown(f"Deterministic policy results: **{ag_output.get('pass', 0)} passed**, **{ag_output.get('excluded', 0)} excluded**.")
+                elif "selected_product_id" in ag_output:
+                    st.markdown(f"Optimal decision candidate: **`{ag_output.get('selected_product_id')}`**.")
+                elif "candidate_count" in ag_output:
+                    st.markdown(f"Generated and scored **{ag_output.get('candidate_count', 0)}** tailored candidates.")
+
+            if agent_exec.get("error"):
+                st.warning(f"Stage notice: {agent_exec.get('error')}")
+
+    # 2. Laya Governance Alerts & Safety Interventions
+    if status == "FAILED_SAFE" or status_code in (502, 503):
+        st.markdown('<div class="section-header">⚠️ Governance & Safety Interventions</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            if status_code == 503 or (top_error and "unavailable" in top_error.lower()):
+                st.markdown(
+                    "<span class='badge badge-warning'>● LAYA DECISION LAYER UNAVAILABLE</span>",
+                    unsafe_allow_html=True,
+                )
+                st.markdown("### Laya Optimization Layer is Unavailable")
+                st.markdown(
+                    "The Laya decision layer is currently disabled or unreachable. "
+                    "In accordance with architectural governance rules, **unverified fallback ranking is forbidden** "
+                    "and will not silently replace Laya decisions."
+                )
+            elif status_code == 502 or (top_error and ("revalidation" in top_error.lower() or "infeasible" in top_error.lower())):
+                st.markdown(
+                    "<span class='badge badge-danger'>● SELECTION REJECTED BY POLICY REVALIDATION</span>",
+                    unsafe_allow_html=True,
+                )
+                st.markdown("### Proposed Selection Failed Authoritative Policy")
+                st.markdown(
+                    "The candidate selected by Laya did not pass final authoritative policy revalidation or warehouse stock safety checks. "
+                    "The recommendation was safely quarantined to protect fulfillment integrity."
+                )
+            else:
+                st.markdown(
+                    "<span class='badge badge-danger'>● WORKFLOW HALTED SAFELY</span>",
+                    unsafe_allow_html=True,
+                )
+                st.markdown("### Workflow Halted Safely")
+                st.markdown("The multi-agent workflow encountered an operational exception and exited safely without returning unverified recommendations.")
+
+            if top_error:
+                st.info(f"System status message: {top_error}")
+
+    catalogue_map = {item.get("product_id"): item for item in load_catalogue()}
+
+    # 3. Laya Selected Offer (Prime Hero Card)
+    if laya_selected_id and laya_status == "LAYA" and recommendations:
+        st.markdown('<div class="section-header">⭐ Mandatory Laya Next-Best-Offer Selection</div>', unsafe_allow_html=True)
+        laya_rec = next((r for r in recommendations if r.get("product_id") == laya_selected_id), recommendations[0])
+        cat_info = catalogue_map.get(laya_selected_id, {})
+
+        l_name = cat_info.get("product_name") or laya_rec.get("product_name", "Featured Product")
+        l_price = float(cat_info.get("unit_price") or 0.0)
+        l_rating = float(cat_info.get("product_rating") or 4.5)
+        l_brand = cat_info.get("brand") or "Global"
+        l_cat = cat_info.get("category") or "General"
+        l_score = float(laya_rec.get("recommendation_score") or 0.0)
+        l_stock = cat_info.get("available_stock")
+        l_margin = float(cat_info.get("gross_margin_pct") or 0.0)
+
+        with st.container(border=True):
+            col_l1, col_l2 = st.columns([3, 1])
+            with col_l1:
+                st.markdown(
+                    f"<span class='badge badge-purple'>★ Laya Chosen Next-Best-Offer</span> "
+                    f"<span class='badge badge-primary'>{l_cat}</span> "
+                    f"<span class='badge badge-slate'>{l_brand}</span> "
+                    f"<span class='badge badge-slate'>SKU: {laya_selected_id}</span>",
+                    unsafe_allow_html=True,
+                )
+                st.markdown(f"## {l_name}")
+                stars = "★" * int(round(l_rating)) + "☆" * (5 - int(round(l_rating)))
+                st.caption(f"Rating: {stars} **{l_rating:.1f}/5** · Brand: **{l_brand}** · Policy Decision: **PASS (Verified)**")
+            with col_l2:
+                if l_price > 0:
+                    st.metric("Unit Price", f"${l_price:,.2f}")
+                st.metric("Propensity Score", f"{l_score * 100:.1f}%")
+
+            st.divider()
+            st.markdown(
+                "**🎯 Optimization Justification:** Evaluated and selected by Laya Decision Layer from policy-feasible candidates, "
+                "then successfully revalidated against operational stock availability, inventory status, and gross margin floors."
+            )
+            margin_str = f"{l_margin*100:.1f}%" if l_margin > 0 else "Verified ≥ 10.0%"
+            stock_str = f"{int(l_stock)} units" if l_stock is not None else "Verified In Stock"
+            st.markdown(
+                f"<span class='badge badge-success'>✓ Warehouse Stock: {stock_str}</span> "
+                f"<span class='badge badge-success'>✓ Gross Margin: {margin_str}</span> "
+                f"<span class='badge badge-success'>✓ Fulfilment Feasibility: Guaranteed</span>",
+                unsafe_allow_html=True,
+            )
+
+    # 4. Actionable Governed Recommendations
+    if recommendations:
+        st.markdown(f'<div class="section-header">🛍️ Actionable Governed Recommendations ({len(recommendations)})</div>', unsafe_allow_html=True)
+        for idx, rec in enumerate(recommendations, 1):
+            pid = rec.get("product_id")
+            cat_item = catalogue_map.get(pid, {})
+            merged_item = {
+                "product_id": pid,
+                "product_name": cat_item.get("product_name") or rec.get("product_name"),
+                "category": cat_item.get("category", "General"),
+                "subcategory": cat_item.get("subcategory", "General"),
+                "brand": cat_item.get("brand", "Global"),
+                "unit_price": cat_item.get("unit_price", 0.0),
+                "product_rating": cat_item.get("product_rating", 4.0),
+                "available_stock": cat_item.get("available_stock", 10),
+                "inventory_status": cat_item.get("inventory_status", "in_stock"),
+                "gross_margin_pct": cat_item.get("gross_margin_pct", 0.15),
+                "recommendation_score": rec.get("recommendation_score", 0.0),
+                "policy_decision": rec.get("policy_decision", "PASS"),
+                "explanation": "Verified against all deterministic operational constraints and selected through multi-agent governance.",
+            }
+            render_product_card(merged_item, rank=idx, show_policy=True)
+    elif status == "ALL_CANDIDATES_EXCLUDED":
+        st.info("ℹ️ All candidate products were excluded by supply constraints (stock depletion or low margin). Zero infeasible items recommended.")
+
+    # 5. Excluded Products Section
+    if excluded:
+        st.markdown('<div class="section-header">🚫 Supply Constraint Quarantine</div>', unsafe_allow_html=True)
+        with st.expander(f"Inspect Excluded Candidates ({len(excluded)} SKUs Blocked by Policy)", expanded=False):
+            st.caption("These items were excluded by deterministic policy rules to protect customer trust and operational margins:")
+            for exc_item in excluded:
+                p_id = exc_item.get("product_id", "")
+                p_name = exc_item.get("product_name", f"Product {p_id}")
+                p_reasons = exc_item.get("policy_reasons", ["Operational constraint violation"])
+                p_score = float(exc_item.get("recommendation_score", 0.0))
+                reasons_text = " · ".join(p_reasons)
+
+                with st.container(border=True):
+                    c_left, c_right = st.columns([3, 1])
+                    with c_left:
+                        st.markdown(
+                            f"<span class='badge badge-danger'>EXCLUDED</span> **{p_name}** <span class='badge badge-purple'>SKU: {p_id}</span>",
+                            unsafe_allow_html=True,
+                        )
+                        st.markdown(f"**Policy Exclusion Reason:** <span style='color:#be123c; font-weight:600;'>{reasons_text}</span>", unsafe_allow_html=True)
+                    with c_right:
+                        st.metric("Raw Score", f"{p_score*100:.1f}%")
+
+    # 6. Decision Governance Summary Metrics
+    st.markdown('<div class="section-header">📊 Decision Governance Summary</div>', unsafe_allow_html=True)
+    total_cands = len(recommendations) + len(excluded)
+    total_ms = sum(a.get("duration_ms", 0.0) for a in agents)
+
+    s1, s2, s3, s4 = st.columns(4)
+    s1.metric("Candidates Evaluated", total_cands)
+    s2.metric("Feasible Recommendations", len(recommendations))
+    s3.metric("Quarantined by Policy", len(excluded))
+    s4.metric("Total Agent Latency", f"{total_ms:.1f} ms")
+
+
+# ---------------------------------------------------------------------------
 # Feature 5: Smart Inventory & Policy Control Centre
 # ---------------------------------------------------------------------------
 
@@ -1101,73 +1437,33 @@ def render_demo_playground() -> None:
 # ---------------------------------------------------------------------------
 
 def query_groq_assistant(prompt: str, context: Dict[str, Any]) -> str:
-    import re
-    from backend.app.config import settings
-
-    api_key = settings.groq_api_key or os.getenv("GROQ_API_KEY")
-    if not api_key:
-        return (
-            "Groq API key is not configured. Please set GROQ_API_KEY in your environment or .env file."
-        )
-
-    # Detect if user mentioned any specific customer ID (e.g. CUST_0005, CUST_0012)
-    mentioned_custs = re.findall(r"CUST_\d{4}", prompt, re.IGNORECASE)
-    if mentioned_custs:
-        cust_lookup = {}
-        for mcid in set(mentioned_custs):
-            mcid_upper = mcid.upper()
-            detail = load_customer_detail(mcid_upper).get("customer", {})
-            if detail:
-                cust_lookup[mcid_upper] = {
-                    "tier": detail.get("membership_tier", "Standard"),
-                    "preferred_category": detail.get("preferred_category", "General"),
-                    "total_spend": float(detail.get("total_spend", 0.0)),
-                    "total_orders": detail.get("total_orders", 0),
-                    "segment": detail.get("customer_segment", "Active"),
-                }
-        if cust_lookup:
-            context["mentioned_customers_in_query"] = cust_lookup
-
-    model = os.getenv("GROQ_MODEL", settings.groq_model or "openai/gpt-oss-120b")
-    system_prompt = (
-        "You are the NBO Decision Intelligence Assistant for this enterprise retail platform. "
-        "Your task is to explain recommendation decisions, deterministic policy enforcement, "
-        "and inventory constraints using authoritative project context. "
-        "Core Business Rules: "
-        "1. Out-of-stock items (stock <= 0) and unknown inventory are strictly quarantined from actionable offers. "
-        "2. Products with gross margin < 10% are strictly excluded to protect profitability. "
-        "3. Personalized recommendations incorporate category affinity, prior basket interactions, and ML propensity. "
-        "4. Popularity-only ranking ignores individual customer context and supply availability. "
-        "5. The Laya decision layer compares feasible candidates, falling back deterministically when needed. "
-        "You can explain ANY customer in the database when requested by ID. "
-        "Provide professional, concise, structured explanations. Do not fabricate unverified stock or margins."
-    )
-
+    """Submit prompt and grounded context to the FastAPI backend assistant endpoint (POST /assistant/chat)."""
+    url = f"{API_BASE_URL}/assistant/chat"
     try:
         res = requests.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers={"Authorization": f"Bearer {api_key}"},
-            json={
-                "model": model,
-                "temperature": 0.2,
-                "max_tokens": 600,
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {
-                        "role": "user",
-                        "content": f"Platform State & Customer Context:\n{context}\n\nUser Question:\n{prompt}",
-                    },
-                ],
-            },
-            timeout=25,
+            url,
+            json={"question": prompt, "context": context},
+            timeout=TIMEOUT,
         )
         if res.ok:
             data = res.json()
-            return data["choices"][0]["message"]["content"]
+            return data.get("answer", "No response returned by assistant service.")
+        elif res.status_code in (502, 503, 504):
+            try:
+                detail = res.json().get("detail")
+            except Exception:
+                detail = None
+            if not detail:
+                detail = f"AI Assistant service notice (HTTP {res.status_code})."
+            return detail
         else:
-            return f"Groq service returned error ({res.status_code}): {res.text}"
+            return f"Assistant service returned status {res.status_code}."
+    except requests.exceptions.Timeout:
+        return "The assistant request timed out while communicating with the backend service. Please try again."
+    except requests.exceptions.ConnectionError:
+        return "Could not connect to the backend assistant service. Ensure the FastAPI backend is running."
     except Exception as e:
-        return f"Unable to reach Groq API: {str(e)}"
+        return f"Unable to reach assistant service: {str(e)}"
 
 
 def render_ai_assistant() -> None:
@@ -1226,6 +1522,10 @@ def render_ai_assistant() -> None:
             unsafe_allow_html=True,
         )
 
+    rec_data = fetch_recommendations(active_customer, top_k=5)
+    recs = rec_data.get("recommendations", [])
+    exclusions = rec_data.get("excluded_candidates", [])
+
     context_summary = {
         "active_customer": {
             "customer_id": active_customer,
@@ -1234,7 +1534,29 @@ def render_ai_assistant() -> None:
             "preferred_category": cust_info.get("preferred_category", "Electronics"),
             "total_spend": float(cust_info.get("total_spend", 0.0)),
             "total_orders": cust_info.get("total_orders", 0),
+            "reward_points": cust_info.get("reward_points", 0),
         },
+        "active_recommendations": [
+            {
+                "product_id": r.get("product_id"),
+                "product_name": r.get("product_name"),
+                "category": r.get("category"),
+                "recommendation_score": r.get("recommendation_score"),
+                "policy_decision": r.get("policy_decision"),
+                "explanation": r.get("explanation"),
+            }
+            for r in recs[:5]
+        ] if recs else [],
+        "policy_exclusions": [
+            {
+                "product_id": e.get("product_id"),
+                "product_name": e.get("product_name"),
+                "category": e.get("category"),
+                "policy_decision": e.get("policy_decision"),
+                "policy_reasons": e.get("policy_reasons", []),
+            }
+            for e in exclusions[:10]
+        ] if exclusions else [],
         "catalogue_summary": {
             "total_skus": len(catalogue),
             "depleted_skus": sum(1 for p in catalogue if (p.get("available_stock") or 0) <= 0),
@@ -1244,6 +1566,8 @@ def render_ai_assistant() -> None:
             "policy_compliance": "100%",
             "laya_decision_layer": "Active (Deterministic Revalidation)",
             "ml_model": "HistGradientBoostingClassifier (ROC-AUC 0.8412)",
+            "margin_floor": "10% minimum gross margin",
+            "stock_rule": "Out of stock (stock <= 0) and unknown inventory strictly quarantined",
         },
     }
 
@@ -1286,6 +1610,44 @@ def render_ai_assistant() -> None:
     prompt_to_run = selected_prompt or user_input
 
     if prompt_to_run:
+        import re
+
+        mentioned_prods = re.findall(r"PROD_\d{4}", prompt_to_run, re.IGNORECASE)
+        if mentioned_prods:
+            cat_map = {item.get("product_id"): item for item in catalogue}
+            queried_prods = {}
+            for pid in set(mentioned_prods):
+                p_info = cat_map.get(pid.upper())
+                if p_info:
+                    queried_prods[pid.upper()] = {
+                        "product_name": p_info.get("product_name"),
+                        "category": p_info.get("category"),
+                        "brand": p_info.get("brand"),
+                        "unit_price": p_info.get("unit_price"),
+                        "available_stock": p_info.get("available_stock"),
+                        "inventory_status": p_info.get("inventory_status"),
+                        "gross_margin_pct": p_info.get("gross_margin_pct"),
+                    }
+            if queried_prods:
+                context_summary["queried_products_in_prompt"] = queried_prods
+
+        mentioned_custs = re.findall(r"CUST_\d{4}", prompt_to_run, re.IGNORECASE)
+        if mentioned_custs:
+            queried_custs = {}
+            for cid in set(mentioned_custs):
+                c_up = cid.upper()
+                c_data = load_customer_detail(c_up).get("customer", {})
+                if c_data:
+                    queried_custs[c_up] = {
+                        "tier": c_data.get("membership_tier"),
+                        "preferred_category": c_data.get("preferred_category"),
+                        "total_spend": float(c_data.get("total_spend", 0.0)),
+                        "total_orders": c_data.get("total_orders", 0),
+                        "segment": c_data.get("customer_segment"),
+                    }
+            if queried_custs:
+                context_summary["queried_customers_in_prompt"] = queried_custs
+
         st.session_state["assistant_messages"].append({"role": "user", "content": prompt_to_run})
         with st.spinner(f"Consulting Groq reasoning engine for {active_customer}..."):
             reply = query_groq_assistant(prompt_to_run, context_summary)
@@ -1345,21 +1707,24 @@ def render_overview() -> None:
             st.caption("Every candidate evaluated has transparent reason codes, score breakdowns, and logged policy audit records for complete compliance.")
 
     st.markdown('<div class="section-header">🚀 Quick Navigation to Platform Features</div>', unsafe_allow_html=True)
-    q1, q2, q3, q4, q5 = st.columns(5)
+    q1, q2, q3, q4, q5, q6 = st.columns(6)
     if q1.button("👤 Customer Intelligence", use_container_width=True):
         st.session_state["nav_page"] = "Customer Intelligence"
         st.rerun()
-    if q2.button("🛍️ Product Recommendations", use_container_width=True):
+    if q2.button("🛍️ Recommendations", use_container_width=True):
         st.session_state["nav_page"] = "Product Recommendations"
         st.rerun()
-    if q3.button("📦 Inventory & Policies", use_container_width=True):
+    if q3.button("📦 Supply & Policy", use_container_width=True):
         st.session_state["nav_page"] = "Inventory & Policies"
         st.rerun()
-    if q4.button("⚡ Live Demo Playground", use_container_width=True):
+    if q4.button("⚡ Live Playground", use_container_width=True):
         st.session_state["nav_page"] = "Demo Playground"
         st.rerun()
-    if q5.button("🤖 AI Assistant (Groq)", use_container_width=True):
+    if q5.button("🤖 AI Assistant", use_container_width=True):
         st.session_state["nav_page"] = "AI Decision Assistant"
+        st.rerun()
+    if q6.button("⚡ Agentic MCP Workflow", use_container_width=True):
+        st.session_state["nav_page"] = "Agentic Workflow (MCP)"
         st.rerun()
 
 
@@ -1383,6 +1748,7 @@ def main() -> None:
             "Product Recommendations",
             "Preferences Studio",
             "Next-Best-Offer",
+            "Agentic Workflow (MCP)",
             "Inventory & Policies",
             "Product Analytics",
             "Demo Playground",
@@ -1439,6 +1805,8 @@ def main() -> None:
         render_preferences_studio()
     elif page == "Next-Best-Offer":
         render_next_best_offer_centre()
+    elif page == "Agentic Workflow (MCP)":
+        render_mcp_agentic_workflow()
     elif page == "Inventory & Policies":
         render_inventory_policy_centre()
     elif page == "Product Analytics":

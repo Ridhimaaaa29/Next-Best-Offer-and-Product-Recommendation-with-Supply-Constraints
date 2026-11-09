@@ -14,7 +14,8 @@ def generate_candidates(
     Candidates are:
     - not previously interacted with by the customer
     - from the customer's preferred category
-    - ordered by product popularity
+    - only products with product_status = 'active'
+    - ordered by product popularity then rating
     """
 
     with psycopg.connect(DATABASE_URL) as conn:
@@ -52,6 +53,7 @@ def generate_candidates(
                     p.product_status
                 FROM products p
                 WHERE p.category = %s
+                  AND p.product_status = 'active'
                   AND p.product_id NOT IN (
                       SELECT i.product_id
                       FROM customer_product_interactions i
@@ -62,11 +64,7 @@ def generate_candidates(
                     p.product_rating DESC
                 LIMIT %s;
                 """,
-                (
-                    preferred_category,
-                    customer_id,
-                    limit,
-                ),
+                (preferred_category, customer_id, limit),
             )
 
             rows = cur.fetchall()

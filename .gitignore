@@ -1,4 +1,5 @@
-.env
+.env*
+!.env.example
 .venv/
 .pip-cache/
 .tmp/
@@ -28,3 +29,9 @@ data/*.sqlite
 .DS_Store
 Thumbs.db
 *.log
+
+# Generated test and runtime artifacts
+reports/*.json
+reports/*.log
+scripts/test_mcp_workflow_call.py
+scripts/verify_e2e_runtime.py

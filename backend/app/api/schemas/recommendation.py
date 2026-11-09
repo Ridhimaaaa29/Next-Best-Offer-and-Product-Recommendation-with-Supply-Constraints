@@ -96,11 +96,13 @@ class RecommendationRequest(BaseModel):
 
 
 class RecommendationResponse(BaseModel):
-    status: str = Field(..., description="Decision status: SUCCESS or ALL_CANDIDATES_EXCLUDED")
+    status: str = Field(..., description="Decision status: SUCCESS, ALL_CANDIDATES_EXCLUDED, LAYA_UNAVAILABLE, or LAYA_FAILED")
     customer_id: str = Field(..., description="Target customer identifier")
     candidate_count: int = Field(..., description="Total candidates generated")
     feasible_count: int = Field(..., description="Total candidates passing all policy constraints")
     excluded_count: int = Field(..., description="Total candidates excluded by policy constraints")
+    decision_method: Optional[str] = Field(default="DETERMINISTIC", description="Decision engine used: LAYA or DETERMINISTIC")
+    laya_status: Optional[str] = Field(default=None, description="Laya execution status: SUCCESS, UNAVAILABLE, REVALIDATION_FAILED, MALFORMED_OUTPUT")
     recommendations: List[RecommendedProductSchema] = Field(
         default_factory=list,
         description="Ranked list of policy-feasible recommended products",

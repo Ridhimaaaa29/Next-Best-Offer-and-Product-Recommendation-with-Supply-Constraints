@@ -3,6 +3,7 @@ from backend.app.api.routes.recommendations import router as recommendations_rou
 from backend.app.api.routes.products import router as products_router
 from backend.app.api.routes.evaluation import router as evaluation_router
 from backend.app.api.routes.decisions import router as decisions_router
+from backend.app.api.routes.mcp import router as mcp_router
 
 __all__ = [
     "health_router",
@@ -10,4 +11,5 @@ __all__ = [
     "products_router",
     "evaluation_router",
     "decisions_router",
+    "mcp_router",
 ]

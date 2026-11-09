@@ -38,14 +38,10 @@ router = APIRouter(tags=["Decisions"])
 
 
 @router.get("/laya/status")
-def laya_status() -> dict[str, str | bool | None]:
-    """Report whether the optional local Laya runtime is enabled."""
+def laya_status() -> dict[str, Any]:
+    """Lightweight status check reporting enabled vs runtime-loaded vs installed."""
     adapter = LayaAdapter()
-    return {
-        "enabled": adapter.enabled,
-        "available": adapter.enabled,
-        "reason": adapter.reason,
-    }
+    return adapter.status_info()
 
 
 @router.post(
@@ -89,48 +85,35 @@ def evaluate_candidates(request: DecisionEvaluationRequest):
 
 @router.post("/decisions/laya", response_model=LayaDecisionResponse)
 def laya_decision(request: LayaDecisionRequest) -> LayaDecisionResponse:
-    """Compare only policy-feasible candidates with optional Laya."""
+    """Compare only policy-feasible candidates with mandatory Laya."""
+    adapter = LayaAdapter()
     try:
-        raw = DecisionModule().decide(
+        decision_module = DecisionModule(laya_adapter=adapter)
+        raw = decision_module.decide(
             customer_id=request.customer_id,
             top_k=request.top_k,
             reward_context=request.reward_context,
             promotion_context=request.promotion_context,
             express_context=request.express_context,
+            use_laya=True,
         )
     except ValueError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
-    feasible = [
+    except Exception as error:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Decision execution failed: {error}",
+        ) from error
+
+    feasible: list[dict] = raw.get("feasible_candidates") or [
         item for item in raw.get("all_evaluated_candidates", []) if item.get("policy_decision") == "PASS"
     ]
-    adapter = LayaAdapter()
-    fallback_reason: str | None = None
-    selected: dict | None = None
-    if feasible:
-        try:
-            selected = adapter.choose(feasible)["selected"]
-        except (RuntimeError, ValueError) as error:
-            fallback_reason = str(error)
-            selected = sorted(
-                feasible,
-                key=lambda item: (-item.get("recommendation_score", 0.0), item.get("product_id", "")),
-            )[0]
-    if selected is not None:
-        validation = evaluate_product(
-            selected["product_id"],
-            reward_context=request.reward_context,
-            promotion_context=request.promotion_context,
-            express_context=request.express_context,
-        )
-        if validation["decision"] != "PASS":
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Final decision failed policy revalidation.")
-    else:
-        validation = None
+
     return LayaDecisionResponse(
-        status="SUCCESS" if selected else "ALL_CANDIDATES_EXCLUDED",
-        laya_available=adapter.enabled,
-        selected_product=selected,
+        status=raw["status"],
+        laya_available=adapter.available,
+        selected_product=raw.get("laya_selected_product"),
         feasible_candidates=feasible,
-        fallback_reason=fallback_reason,
-        final_validation=validation,
+        fallback_reason=raw.get("laya_fallback_reason"),
+        final_validation=raw.get("laya_revalidation"),
     )

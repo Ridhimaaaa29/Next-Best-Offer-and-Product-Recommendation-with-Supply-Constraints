@@ -1,4 +1,17 @@
-"""Sequential deterministic agents that communicate only through MCP tools."""
+"""Sequential deterministic agents that communicate only through MCP tools.
+
+Architecture (mandatory):
+  Stage 1 – Customer Agent      : get_customer_context
+  Stage 2 – Recommendation Agent: generate_recommendations
+  Stage 3 – Inventory Agent     : get_inventory_details (per candidate)
+  Stage 4 – Policy Agent        : evaluate_policy (per candidate)
+  Stage 4.5 – Laya Agent        : run_laya_decision (feasible candidates only)
+  Stage 5 – Decision Agent      : finalize_decision (Laya-selected candidate only)
+
+Laya execution is mandatory.  The workflow NEVER returns SUCCESS via a
+score-based sort.  If Laya is unavailable (FALLBACK status), fails, or
+returns a product not in the feasible set the workflow returns FAILED_SAFE.
+"""
 
 from __future__ import annotations
 
@@ -14,11 +27,14 @@ from backend.app.mcp.schemas import (
     CustomerContext,
     CustomerInput,
     FinalExclusion,
+    FinalizeCandidate,
     FinalizeInput,
     FinalizeOutput,
     FinalRecommendation,
     InventoryDetails,
     InventoryInput,
+    LayaInput,
+    LayaOutput,
     PolicyInput,
     PolicyOutput,
     RecommendationInput,
@@ -27,6 +43,18 @@ from backend.app.mcp.schemas import (
 
 
 logger = logging.getLogger("nbo.mcp.workflow")
+
+# All six tools must be present before the workflow starts.
+_REQUIRED_TOOLS: frozenset[str] = frozenset(
+    {
+        "get_customer_context",
+        "generate_recommendations",
+        "get_inventory_details",
+        "evaluate_policy",
+        "run_laya_decision",
+        "finalize_decision",
+    }
+)
 
 
 class AgentExecution(BaseModel):
@@ -45,6 +73,9 @@ class MCPWorkflowResult(BaseModel):
     tool_calls: list[MCPToolTrace]
     recommendations: list[FinalRecommendation]
     excluded_candidates: list[FinalExclusion]
+    # Laya provenance fields – None when Laya stage was not reached.
+    laya_selected_product_id: str | None = None
+    laya_status: str | None = None
     error: str | None = None
 
 
@@ -66,6 +97,9 @@ class SharedWorkflowState:
         self.recommendations: RecommendationOutput | None = None
         self.inventory: dict[str, InventoryDetails] = {}
         self.policy: dict[str, PolicyOutput] = {}
+        # Laya outputs – set during Stage 4.5
+        self.laya_output: LayaOutput | None = None
+        self.laya_selected_id: str | None = None
         self.final: FinalizeOutput | None = None
         self.agents: list[AgentExecution] = []
         self.error: str | None = None
@@ -112,15 +146,15 @@ async def _run_workflow(
     )
     try:
         async with MCPClient() as client:
-            if not {
-                "get_customer_context",
-                "generate_recommendations",
-                "get_inventory_details",
-                "evaluate_policy",
-                "finalize_decision",
-            }.issubset(client.server_tools):
-                raise MCPToolError("MCP server did not expose the required five tools.")
+            if not _REQUIRED_TOOLS.issubset(client.server_tools):
+                missing = _REQUIRED_TOOLS - set(client.server_tools)
+                raise MCPToolError(
+                    f"MCP server did not expose the required tools. Missing: {sorted(missing)}"
+                )
 
+            # ------------------------------------------------------------------
+            # Stage 1 – Customer Agent
+            # ------------------------------------------------------------------
             started = time.perf_counter()
             try:
                 state.customer_context = await client.call_tool(
@@ -148,6 +182,9 @@ async def _run_workflow(
                 )
                 return _result(state, client.traces)
 
+            # ------------------------------------------------------------------
+            # Stage 2 – Recommendation Agent
+            # ------------------------------------------------------------------
             started = time.perf_counter()
             try:
                 state.recommendations = await client.call_tool(
@@ -175,6 +212,9 @@ async def _run_workflow(
                 )
                 return _result(state, client.traces)
 
+            # ------------------------------------------------------------------
+            # Stage 3 – Inventory Agent
+            # ------------------------------------------------------------------
             started = time.perf_counter()
             inventory_errors = 0
             for candidate in state.recommendations.candidates:
@@ -205,12 +245,18 @@ async def _run_workflow(
                 started,
                 "completed" if inventory_errors == 0 else "completed_with_errors",
                 {
-                    "verified": sum(item.verification_status == "verified" for item in state.inventory.values()),
+                    "verified": sum(
+                        item.verification_status == "verified"
+                        for item in state.inventory.values()
+                    ),
                     "failed": inventory_errors,
-                    "products": list(state.inventory.values()),
+                    "products": [i.model_dump(mode="json") for i in state.inventory.values()],
                 },
             )
 
+            # ------------------------------------------------------------------
+            # Stage 4 – Policy Agent
+            # ------------------------------------------------------------------
             started = time.perf_counter()
             policy_errors = 0
             for candidate in state.recommendations.candidates:
@@ -240,26 +286,135 @@ async def _run_workflow(
                 started,
                 "completed" if policy_errors == 0 else "completed_with_errors",
                 {
-                    "pass": sum(item.decision == "PASS" for item in state.policy.values()),
-                    "excluded": sum(item.decision == "EXCLUDE" for item in state.policy.values()),
+                    "pass": sum(
+                        item.decision == "PASS" for item in state.policy.values()
+                    ),
+                    "excluded": sum(
+                        item.decision == "EXCLUDE" for item in state.policy.values()
+                    ),
                     "failed": policy_errors,
-                    "results": list(state.policy.values()),
+                    "results": [p.model_dump(mode="json") for p in state.policy.values()],
                 },
             )
 
+            # ------------------------------------------------------------------
+            # Stage 4.5 – Laya Agent
+            # Laya receives ONLY the candidates that passed policy evaluation.
+            # A FALLBACK response (Laya disabled) is treated as a hard failure;
+            # the workflow must NOT succeed via score-based sorting.
+            # ------------------------------------------------------------------
             started = time.perf_counter()
+            feasible_for_laya: list[FinalizeCandidate] = [
+                FinalizeCandidate(
+                    product_id=c.product_id,
+                    product_name=c.product_name,
+                    recommendation_score=c.recommendation_score,
+                )
+                for c in state.recommendations.candidates
+                if (
+                    state.policy.get(c.product_id) is not None
+                    and state.policy[c.product_id].decision == "PASS"
+                )
+            ]
+
+            if not feasible_for_laya:
+                state.error = (
+                    "No policy-feasible candidates remain; "
+                    "Laya cannot select a Next-Best-Offer."
+                )
+                _record_agent(
+                    state,
+                    "Laya Agent",
+                    "Select the Next-Best-Offer from policy-feasible candidates.",
+                    started,
+                    "skipped_no_feasible",
+                    error=state.error,
+                )
+                return _result(state, client.traces)
+
+            try:
+                laya_output = await client.call_tool(
+                    "run_laya_decision",
+                    LayaInput(candidates=feasible_for_laya),
+                    LayaOutput,
+                )
+
+                if laya_output.status == "FALLBACK":
+                    # Laya is disabled or unavailable – score-based fallback is
+                    # explicitly forbidden; surface this as a workflow failure.
+                    state.error = (
+                        f"Laya is unavailable and score-based fallback is not "
+                        f"permitted: {laya_output.explanation}"
+                    )
+                    _record_agent(
+                        state,
+                        "Laya Agent",
+                        "Select the Next-Best-Offer from policy-feasible candidates.",
+                        started,
+                        "failed_laya_unavailable",
+                        laya_output,
+                        state.error,
+                    )
+                    return _result(state, client.traces)
+
+                # Validate that the selected product is in the feasible set.
+                selected_id = laya_output.selected_product_id
+                if not any(c.product_id == selected_id for c in feasible_for_laya):
+                    state.error = (
+                        f"Laya selected '{selected_id}' which is not in the "
+                        "policy-feasible candidate set."
+                    )
+                    _record_agent(
+                        state,
+                        "Laya Agent",
+                        "Select the Next-Best-Offer from policy-feasible candidates.",
+                        started,
+                        "failed_invalid_selection",
+                        laya_output,
+                        state.error,
+                    )
+                    return _result(state, client.traces)
+
+                state.laya_output = laya_output
+                state.laya_selected_id = selected_id
+                _record_agent(
+                    state,
+                    "Laya Agent",
+                    "Select the Next-Best-Offer from policy-feasible candidates.",
+                    started,
+                    "completed",
+                    laya_output,
+                )
+
+            except MCPToolError as error:
+                state.error = str(error)
+                _record_agent(
+                    state,
+                    "Laya Agent",
+                    "Select the Next-Best-Offer from policy-feasible candidates.",
+                    started,
+                    "failed_safe",
+                    error=state.error,
+                )
+                return _result(state, client.traces)
+
+            # ------------------------------------------------------------------
+            # Stage 5 – Decision Agent
+            # Pass ONLY the Laya-selected candidate to finalize_decision so that
+            # the internal score-sort cannot displace Laya's choice.
+            # finalize_decision will revalidate the candidate against the policy
+            # engine for a final authoritative check.
+            # ------------------------------------------------------------------
+            started = time.perf_counter()
+            laya_selected_candidate = next(
+                c for c in feasible_for_laya
+                if c.product_id == state.laya_selected_id
+            )
             try:
                 state.final = await client.call_tool(
                     "finalize_decision",
                     FinalizeInput(
-                        candidates=[
-                            {
-                                "product_id": candidate.product_id,
-                                "product_name": candidate.product_name,
-                                "recommendation_score": candidate.recommendation_score,
-                            }
-                            for candidate in state.recommendations.candidates
-                        ],
+                        candidates=[laya_selected_candidate],
                         reward_context=reward_context,
                         promotion_context=promotion_context,
                         express_context=express_context,
@@ -267,25 +422,44 @@ async def _run_workflow(
                     FinalizeOutput,
                 )
                 state.final = _apply_inventory_safety(state)
-                _record_agent(
-                    state,
-                    "Decision Agent",
-                    "Revalidate every candidate and return only feasible recommendations.",
-                    started,
-                    "completed",
-                    state.final,
-                )
+
+                # If the Laya-selected candidate failed revalidation or the
+                # inventory check, the workflow cannot claim SUCCESS.
+                if not state.final.recommendations:
+                    state.error = (
+                        f"Laya-selected product '{state.laya_selected_id}' "
+                        "failed post-selection policy revalidation or inventory check."
+                    )
+                    _record_agent(
+                        state,
+                        "Decision Agent",
+                        "Revalidate Laya-selected candidate against policy and inventory.",
+                        started,
+                        "laya_selection_infeasible",
+                        state.final,
+                        state.error,
+                    )
+                else:
+                    _record_agent(
+                        state,
+                        "Decision Agent",
+                        "Revalidate Laya-selected candidate against policy and inventory.",
+                        started,
+                        "completed",
+                        state.final,
+                    )
             except MCPToolError as error:
                 state.error = str(error)
                 _record_agent(
                     state,
                     "Decision Agent",
-                    "Revalidate every candidate and return only feasible recommendations.",
+                    "Revalidate Laya-selected candidate against policy and inventory.",
                     started,
                     "failed_safe",
                     error=state.error,
                 )
             return _result(state, client.traces)
+
     except Exception as error:
         logger.exception("MCP workflow failed before completion")
         state.error = str(error)
@@ -295,7 +469,9 @@ async def _run_workflow(
 def _apply_inventory_safety(state: SharedWorkflowState) -> FinalizeOutput:
     """Prevent failed or unknown inventory checks from becoming feasible."""
     if state.final is None:
-        return FinalizeOutput(status="ALL_CANDIDATES_EXCLUDED", recommendations=[], excluded_candidates=[])
+        return FinalizeOutput(
+            status="ALL_CANDIDATES_EXCLUDED", recommendations=[], excluded_candidates=[]
+        )
     safe_recommendations: list[FinalRecommendation] = []
     additional_exclusions: list[FinalExclusion] = []
     for recommendation in state.final.recommendations:
@@ -342,7 +518,9 @@ def _apply_inventory_safety(state: SharedWorkflowState) -> FinalizeOutput:
     )
 
 
-def _result(state: SharedWorkflowState, traces: list[MCPToolTrace]) -> MCPWorkflowResult:
+def _result(
+    state: SharedWorkflowState, traces: list[MCPToolTrace]
+) -> MCPWorkflowResult:
     final = state.final or FinalizeOutput(
         status="ALL_CANDIDATES_EXCLUDED",
         recommendations=[],
@@ -356,6 +534,10 @@ def _result(state: SharedWorkflowState, traces: list[MCPToolTrace]) -> MCPWorkfl
         tool_calls=traces,
         recommendations=final.recommendations,
         excluded_candidates=final.excluded_candidates,
+        laya_selected_product_id=state.laya_selected_id,
+        laya_status=(
+            state.laya_output.status if state.laya_output is not None else None
+        ),
         error=state.error,
     )
 

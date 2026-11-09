@@ -17,6 +17,8 @@ joblib==1.5.3
 scikit-learn==1.9.1
 numpy>=1.26.0
 pandas>=2.0.0
+mcp==2.3.0
+laya==0.4.26
 
 # Testing
 pytest==9.1.1

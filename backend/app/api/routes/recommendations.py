@@ -3,7 +3,7 @@ Recommendation Router
 Project: Next-Best-Offer and Product Recommendation with Supply Constraints
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 from backend.app.api.schemas.recommendation import (
     RecommendationRequest,
@@ -26,16 +26,19 @@ router = APIRouter(tags=["Recommendations"])
         404: {"model": ErrorResponse, "description": "Customer not found"},
         422: {"description": "Validation error"},
         500: {"model": ErrorResponse, "description": "Internal server error"},
+        502: {"model": RecommendationResponse, "description": "Laya decision layer failed or invalid selection"},
+        503: {"model": RecommendationResponse, "description": "Laya decision layer unavailable or not loaded"},
     },
     summary="Generate Next-Best-Offer Recommendations",
     description=(
         "Executes the full supply-constrained recommendation pipeline: "
         "Customer Context -> Candidate Generation -> ML/Heuristic Scoring -> "
-        "Policy Hard Constraints -> Feasibility Pruning -> Top-K Structured Output."
+        "Policy Hard Constraints -> Feasibility Pruning -> Mandatory Laya Decision -> Structured Output."
     ),
 )
 def generate_recommendations(
     req: RecommendationRequest,
+    response: Response,
     db: Session = Depends(get_db),
 ) -> RecommendationResponse:
     logger.info(
@@ -55,6 +58,7 @@ def generate_recommendations(
             reward_context=req.reward_context,
             promotion_context=req.promotion_context,
             express_context=req.express_context,
+            use_laya=True,
         )
     except ValueError as ve:
         logger.warning("Customer context validation error", customer_id=req.customer_id, error=str(ve))
@@ -72,6 +76,13 @@ def generate_recommendations(
     # Format result to match RecommendationResponse
     audit_id = AuditService(db).log_decision_audit(raw_result)
     excluded = raw_result.get("excluded_candidates") if req.include_excluded else None
+
+    # Map decision failures to non-success HTTP status codes while preserving structured contract
+    res_status = raw_result.get("status")
+    if res_status == "LAYA_UNAVAILABLE":
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    elif res_status in ("LAYA_FAILED", "LAYA_SELECTION_INFEASIBLE"):
+        response.status_code = status.HTTP_502_BAD_GATEWAY
 
     # Map candidate dicts to score breakdown schema
     formatted_recs = []
@@ -100,6 +111,8 @@ def generate_recommendations(
         candidate_count=raw_result["candidate_count"],
         feasible_count=raw_result["feasible_count"],
         excluded_count=raw_result["excluded_count"],
+        decision_method=raw_result.get("decision_method", "DETERMINISTIC"),
+        laya_status=raw_result.get("laya_status"),
         recommendations=formatted_recs,
         excluded_candidates=excluded,
     )
