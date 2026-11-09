@@ -4,6 +4,8 @@ Status: NOT YET IMPLEMENTED / PLANNED FOR FUTURE ITERATION.
 Decision logic is currently integrated directly via `/api/v1/recommend`.
 """
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from backend.app.api.schemas.common import ErrorResponse
 from backend.app.api.schemas.decision import (
