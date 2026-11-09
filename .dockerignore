@@ -1,0 +1,40 @@
+# Version control
+.git/
+.gitignore
+
+# Python environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local model & huggingface caches (large artifacts)
+.laya-cache/
+.hf-cache/
+.pip-cache/
+
+# Local credentials and environment files
+.env
+.env.*
+!.env.example
+
+# Local IDE and OS metadata
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# Raw datasets & temporary artifacts
+data/raw/
+data/processed/*.gz
+data/*.sqlite
+reports/
+scripts/test_mcp_workflow_call.py
+scripts/verify_e2e_runtime.py
+
