@@ -366,6 +366,64 @@ def load_basket_associations() -> List[Dict[str, Any]]:
     return results
 
 
+def _recommendation_error_result(
+    customer_id: str,
+    error_type: str,
+    message: str,
+    http_status: Optional[int] = None,
+) -> Dict[str, Any]:
+    """Return a structured non-success payload when live recommendations fail."""
+    return {
+        "status": "ERROR",
+        "customer_id": customer_id,
+        "candidate_count": 0,
+        "feasible_count": 0,
+        "excluded_count": 0,
+        "decision_method": None,
+        "laya_status": None,
+        "recommendations": [],
+        "excluded_candidates": [],
+        "error": message,
+        "error_type": error_type,
+        "http_status": http_status,
+    }
+
+
+def _extract_backend_error_detail(res: requests.Response) -> str:
+    """Safely extract structured error details from a backend HTTP error response."""
+    try:
+        data = res.json()
+    except Exception:
+        data = None
+
+    if isinstance(data, dict):
+        parts: List[str] = []
+        detail = data.get("detail") or data.get("error") or data.get("message")
+        if isinstance(detail, str) and detail.strip():
+            parts.append(detail.strip())
+        rec_status = data.get("status")
+        if isinstance(rec_status, str) and rec_status.strip():
+            parts.append(f"status={rec_status.strip()}")
+        laya_status = data.get("laya_status")
+        if isinstance(laya_status, str) and laya_status.strip():
+            parts.append(f"laya_status={laya_status.strip()}")
+        if parts:
+            return "; ".join(parts)
+    return ""
+
+
+def render_recommendation_error(rec_result: Dict[str, Any]) -> bool:
+    """Render an actionable error message when recommendation retrieval fails."""
+    if not isinstance(rec_result, dict):
+        st.error("❌ **Live Recommendations Unavailable**: Invalid recommendation response structure.")
+        return True
+    if rec_result.get("status") != "ERROR" and not rec_result.get("error"):
+        return False
+    err_msg = rec_result.get("error") or "Live recommendations could not be retrieved from the backend."
+    st.error(f"❌ **Live Recommendations Unavailable**: {err_msg}")
+    return True
+
+
 def fetch_recommendations(
     customer_id: str,
     top_k: int = 5,
@@ -386,112 +444,87 @@ def fetch_recommendations(
             },
             timeout=TIMEOUT,
         )
-        if res.ok:
-            return res.json()
-    except Exception:
-        pass
-
-    # Local Fallback Recommender Engine
-    catalogue = load_catalogue()
-    cust_detail = load_customer_detail(customer_id)
-    cust_info = cust_detail.get("customer", {})
-    pref_cat = cust_info.get("preferred_category", "Electronics")
-
-    purchased_prods = {t.get("product_id") for t in cust_detail.get("recent_transactions", [])}
-
-    all_evaluated = []
-    feasible = []
-    excluded = []
-
-    for item in catalogue:
-        pid = item.get("product_id", "")
-        pname = item.get("product_name", "")
-        cat = item.get("category", "")
-        subcat = item.get("subcategory", "")
-        brand = item.get("brand", "")
-        price = float(item.get("unit_price", 0.0))
-        rating = float(item.get("product_rating", 4.0))
-        popularity = float(item.get("product_popularity", 0.5))
-        stock = item.get("available_stock")
-        inv_status = item.get("inventory_status", "unknown")
-        margin = float(item.get("gross_margin_pct") or 0.0)
-        shipping_days = item.get("shipping_days", 5)
-        reward_elig = item.get("reward_eligible", True)
-        promo_elig = item.get("promotion_eligible", True)
-
-        cat_match = 1.0 if cat.lower() == pref_cat.lower() else 0.3
-        score = (0.40 * cat_match) + (0.30 * popularity) + (0.20 * (rating / 5.0)) + (0.10 * (0.8 if pid in purchased_prods else 0.4))
-        score = round(min(1.0, score), 4)
-
-        policy_reasons = []
-        is_pass = True
-
-        if inv_status == "out_of_stock" or (stock is not None and stock <= 0):
-            is_pass = False
-            policy_reasons.append("Inventory is depleted (0 units available)")
-        elif inv_status == "unknown" or stock is None:
-            is_pass = False
-            policy_reasons.append("Inventory status is unknown or unverified")
-
-        if margin < 0.10:
-            is_pass = False
-            policy_reasons.append(f"Gross margin ({margin*100:.1f}%) is below 10.0% floor")
-
-        if reward_context and not reward_elig:
-            is_pass = False
-            policy_reasons.append("Ineligible for reward points redemption")
-
-        if promotion_context and not promo_elig:
-            is_pass = False
-            policy_reasons.append("Excluded from promotional campaign discounts")
-
-        if express_context and (shipping_days is None or shipping_days > 3):
-            is_pass = False
-            policy_reasons.append(f"Shipping ({shipping_days} days) exceeds 3-day express SLA")
-
-        explanation_reason = (
-            f"High affinity for customer preferred category '{pref_cat}' with strong satisfaction rating ({rating:.1f}/5)"
-            if cat.lower() == pref_cat.lower()
-            else f"High-popularity item with positive engagement across {cat}"
+    except requests.exceptions.Timeout:
+        return _recommendation_error_result(
+            customer_id=customer_id,
+            error_type="timeout",
+            message=(
+                "Recommendation request timed out while awaiting the backend service. "
+                "Please verify backend health and try again."
+            ),
+        )
+    except requests.exceptions.ConnectionError:
+        return _recommendation_error_result(
+            customer_id=customer_id,
+            error_type="backend_unavailable",
+            message=(
+                "Backend recommendation service is unreachable. "
+                f"Ensure the FastAPI server is running and accessible at `{API_BASE_URL}`."
+            ),
+        )
+    except requests.exceptions.RequestException as exc:
+        return _recommendation_error_result(
+            customer_id=customer_id,
+            error_type="backend_unavailable",
+            message=f"Failed to communicate with the recommendation backend ({type(exc).__name__}).",
         )
 
-        candidate_data = {
-            "product_id": pid,
-            "product_name": pname,
-            "category": cat,
-            "subcategory": subcat,
-            "brand": brand,
-            "unit_price": price,
-            "product_rating": rating,
-            "product_popularity": popularity,
-            "recommendation_score": score,
-            "policy_decision": "PASS" if is_pass else "EXCLUDE",
-            "policy_reasons": policy_reasons,
-            "explanation": explanation_reason,
-            "available_stock": stock,
-            "gross_margin_pct": margin,
-            "inventory_status": inv_status,
-            "reward_eligible": reward_elig,
-        }
+    if res.ok:
+        try:
+            payload = res.json()
+        except Exception:
+            return _recommendation_error_result(
+                customer_id=customer_id,
+                error_type="invalid_response",
+                http_status=res.status_code,
+                message="Invalid response from recommendation backend: expected valid JSON payload.",
+            )
 
-        all_evaluated.append(candidate_data)
-        if is_pass:
-            feasible.append(candidate_data)
-        else:
-            excluded.append(candidate_data)
+        if (
+            not isinstance(payload, dict)
+            or not isinstance(payload.get("status"), str)
+            or not isinstance(payload.get("recommendations"), list)
+        ):
+            return _recommendation_error_result(
+                customer_id=customer_id,
+                error_type="invalid_response",
+                http_status=res.status_code,
+                message=(
+                    "Invalid response from recommendation backend: "
+                    "expected JSON object with 'status' and 'recommendations' list."
+                ),
+            )
+        return payload
 
-    feasible.sort(key=lambda x: (-x["recommendation_score"], x["product_id"]))
-    top_recs = feasible[:top_k]
+    detail_suffix = _extract_backend_error_detail(res)
+    detail_text = f" ({detail_suffix})" if detail_suffix else ""
+    if res.status_code == 503:
+        return _recommendation_error_result(
+            customer_id=customer_id,
+            error_type="laya_or_workflow_failure",
+            http_status=503,
+            message=(
+                "Laya decision layer or workflow service is unavailable (HTTP 503)"
+                f"{detail_text}. Live ML/Laya recommendations cannot be served."
+            ),
+        )
+    if res.status_code == 502:
+        return _recommendation_error_result(
+            customer_id=customer_id,
+            error_type="laya_or_workflow_failure",
+            http_status=502,
+            message=(
+                "Laya decision evaluation or workflow execution failed (HTTP 502)"
+                f"{detail_text}. No fallback recommendations are permitted."
+            ),
+        )
 
-    return {
-        "status": "SUCCESS" if top_recs else "ALL_CANDIDATES_EXCLUDED",
-        "customer_id": customer_id,
-        "candidate_count": len(all_evaluated),
-        "feasible_count": len(feasible),
-        "excluded_count": len(excluded),
-        "recommendations": top_recs,
-        "excluded_candidates": excluded,
-    }
+    return _recommendation_error_result(
+        customer_id=customer_id,
+        error_type="http_error",
+        http_status=res.status_code,
+        message=f"Recommendation backend returned HTTP {res.status_code}{detail_text}.",
+    )
 
 
 def fetch_mcp_workflow(
@@ -792,7 +825,9 @@ def render_recommendations_discovery() -> None:
         with st.container(border=True):
             st.markdown("#### ⭐ Personalised & Governed Recommendations")
             st.caption("Combines customer affinity, ML signals, and strict stock & margin enforcement.")
-        if recs:
+        if render_recommendation_error(rec_result):
+            pass
+        elif recs:
             for idx, item in enumerate(recs, 1):
                 render_product_card(item, rank=idx)
         else:
@@ -846,30 +881,36 @@ def render_preferences_studio() -> None:
 
         btn_apply = st.button("✨ Apply Preferences & Refresh Recommendations", type="primary", use_container_width=True)
 
-    if btn_apply or "studio_recs" in st.session_state:
-        with st.spinner("Generating tailored recommendations with active governance..."):
-            rec_result = fetch_recommendations(
-                selected_customer,
-                top_k=8,
-                reward_context=reward_ctx,
-                promotion_context=promo_ctx,
-                express_context=express_ctx,
-            )
-            all_recs = rec_result.get("recommendations", [])
-
-            filtered_recs = []
-            for r in all_recs:
-                if categories and r.get("category") not in categories and r.get("subcategory") not in categories:
-                    continue
-                if float(r.get("unit_price", 0)) > max_budget:
-                    continue
-                if float(r.get("product_rating", 0)) < min_rating:
-                    continue
-                filtered_recs.append(r)
-
-            st.session_state["studio_recs"] = filtered_recs
+    if btn_apply or "studio_rec_result" in st.session_state or "studio_recs" in st.session_state:
+        if btn_apply or "studio_rec_result" not in st.session_state:
+            with st.spinner("Generating tailored recommendations with active governance..."):
+                rec_result = fetch_recommendations(
+                    selected_customer,
+                    top_k=8,
+                    reward_context=reward_ctx,
+                    promotion_context=promo_ctx,
+                    express_context=express_ctx,
+                )
+            st.session_state["studio_rec_result"] = rec_result
+            if rec_result.get("status") == "ERROR":
+                st.session_state.pop("studio_recs", None)
+            else:
+                all_recs = rec_result.get("recommendations", [])
+                filtered_recs = []
+                for r in all_recs:
+                    if categories and r.get("category") not in categories and r.get("subcategory") not in categories:
+                        continue
+                    if float(r.get("unit_price", 0)) > max_budget:
+                        continue
+                    if float(r.get("product_rating", 0)) < min_rating:
+                        continue
+                    filtered_recs.append(r)
+                st.session_state["studio_recs"] = filtered_recs
 
         st.markdown('<div class="section-header">🎯 Updated Governed Product Recommendations</div>', unsafe_allow_html=True)
+        studio_res = st.session_state.get("studio_rec_result", {})
+        if render_recommendation_error(studio_res):
+            return
         display_recs = st.session_state.get("studio_recs", [])
         if display_recs:
             st.success(f"Generated {len(display_recs)} tailored, feasible offers matching customer preferences and business policy.")
@@ -906,9 +947,12 @@ def render_next_best_offer_centre() -> None:
     rec_result = fetch_recommendations(selected_customer, top_k=3, reward_context=True, promotion_context=True)
     recs = rec_result.get("recommendations", [])
 
-    if not recs:
+    if rec_result.get("status") != "ERROR" and not recs:
         rec_result = fetch_recommendations(selected_customer, top_k=3)
         recs = rec_result.get("recommendations", [])
+
+    if render_recommendation_error(rec_result):
+        return
 
     if recs:
         top_offer = recs[0]
@@ -1289,6 +1333,8 @@ def render_inventory_policy_centre() -> None:
     test_cust = cust_col.selectbox("Test Customer Context:", [f"CUST_{i:04d}" for i in range(1, 15)], index=0)
 
     eval_res = fetch_recommendations(test_cust, top_k=5, reward_context=False, promotion_context=False)
+    if render_recommendation_error(eval_res):
+        return
     feasible_items = eval_res.get("recommendations", [])
     excluded_items = eval_res.get("excluded_candidates", [])
 
@@ -1463,6 +1509,8 @@ def render_demo_playground() -> None:
             st.session_state["demo_result"] = res
 
         demo_res = st.session_state["demo_result"]
+        if render_recommendation_error(demo_res):
+            return
         recs = demo_res.get("recommendations", [])
         excluded = demo_res.get("excluded_candidates", [])
 
@@ -1573,8 +1621,11 @@ def render_ai_assistant() -> None:
         )
 
     rec_data = fetch_recommendations(active_customer, top_k=5)
-    recs = rec_data.get("recommendations", [])
-    exclusions = rec_data.get("excluded_candidates", [])
+    rec_error = rec_data.get("error") if rec_data.get("status") == "ERROR" else None
+    if rec_error:
+        render_recommendation_error(rec_data)
+    recs = rec_data.get("recommendations", []) if not rec_error else []
+    exclusions = rec_data.get("excluded_candidates", []) if not rec_error else []
 
     context_summary = {
         "active_customer": {
