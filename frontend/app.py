@@ -694,6 +694,51 @@ def render_customer_intelligence_hub() -> None:
 # Feature 2: Smart Product Discovery & Recommendations
 # ---------------------------------------------------------------------------
 
+DEFAULT_CATEGORIES: Tuple[str, ...] = (
+    "Electronics",
+    "Health & Fitness",
+    "Beauty & Skincare",
+    "Coffee & Kitchen",
+    "Home & Living",
+)
+
+
+def resolve_category_options(
+    catalogue: Optional[List[Dict[str, Any]]] = None,
+    preferred_category: Any = None,
+) -> Tuple[List[str], List[str]]:
+    """Build authoritative category options and a safe default selection."""
+    seen: set[str] = set()
+    options: List[str] = []
+
+    def _add(val: Any) -> None:
+        if isinstance(val, str):
+            cleaned = val.strip()
+            if cleaned and cleaned.lower() != "nan" and cleaned not in seen:
+                seen.add(cleaned)
+                options.append(cleaned)
+
+    for item in catalogue or []:
+        _add(item.get("category"))
+
+    for cat in DEFAULT_CATEGORIES:
+        _add(cat)
+
+    pref_clean: Optional[str] = None
+    if isinstance(preferred_category, str):
+        candidate = preferred_category.strip()
+        if candidate and candidate.lower() != "nan":
+            pref_clean = candidate
+            _add(pref_clean)
+
+    default_selection = (
+        [pref_clean]
+        if pref_clean and pref_clean in options
+        else ([options[0]] if options else [])
+    )
+    return options, default_selection
+
+
 def render_recommendations_discovery() -> None:
     render_hero(
         "Smart Product Discovery & Recommendations",
@@ -705,12 +750,14 @@ def render_recommendations_discovery() -> None:
     cust_options = [c["customer_id"] for c in customers]
     curr_id = st.session_state.get("selected_customer_id", "CUST_0001")
     sel_idx = cust_options.index(curr_id) if curr_id in cust_options else 0
+    catalogue = load_catalogue()
+    discovery_categories, _ = resolve_category_options(catalogue)
 
     col_ctrl1, col_ctrl2, col_ctrl3 = st.columns([2, 1, 1])
     selected_customer = col_ctrl1.selectbox("Target Customer:", cust_options, index=sel_idx)
     st.session_state["selected_customer_id"] = selected_customer
     top_k = col_ctrl2.select_slider("Top-N Offers:", options=[3, 5, 8, 10], value=5)
-    category_filter = col_ctrl3.selectbox("Filter Category:", ["All Categories", "Electronics", "Home & Kitchen", "Fitness", "Fashion"])
+    category_filter = col_ctrl3.selectbox("Filter Category:", ["All Categories"] + discovery_categories)
 
     rec_result = fetch_recommendations(selected_customer, top_k=top_k)
     recs = rec_result.get("recommendations", [])
@@ -726,7 +773,6 @@ def render_recommendations_discovery() -> None:
         with st.container(border=True):
             st.markdown("#### 📌 Baseline: Popularity-Only Ranking")
             st.caption("Ranks purely by transaction frequency. Unaware of inventory stock or individual preference.")
-        catalogue = load_catalogue()
         pop_sorted = sorted(catalogue, key=lambda x: -float(x.get("product_popularity", 0)))[:top_k]
         for idx, item in enumerate(pop_sorted, 1):
             with st.container(border=True):
@@ -774,6 +820,10 @@ def render_preferences_studio() -> None:
     st.session_state["selected_customer_id"] = selected_customer
 
     cust_detail = load_customer_detail(selected_customer).get("customer", {})
+    category_options, default_categories = resolve_category_options(
+        load_catalogue(),
+        preferred_category=cust_detail.get("preferred_category"),
+    )
 
     st.markdown('<div class="section-header">⚙️ Interactive Preference Controls</div>', unsafe_allow_html=True)
 
@@ -782,8 +832,8 @@ def render_preferences_studio() -> None:
         with col1:
             categories = st.multiselect(
                 "Preferred Shopping Categories:",
-                ["Electronics", "Audio", "Home & Kitchen", "Fitness", "Fashion", "Beauty"],
-                default=[cust_detail.get("preferred_category", "Electronics")],
+                category_options,
+                default=default_categories,
             )
             max_budget = st.slider("Maximum Price Range ($):", min_value=20, max_value=500, value=250, step=10)
             min_rating = st.slider("Minimum Customer Rating:", min_value=3.0, max_value=5.0, value=3.8, step=0.1)

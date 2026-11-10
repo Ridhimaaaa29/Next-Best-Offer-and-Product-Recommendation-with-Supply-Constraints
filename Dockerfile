@@ -15,8 +15,9 @@ RUN pip install --no-cache-dir torch==2.5.1 --index-url https://download.pytorch
 COPY backend/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend application code
+# Copy backend application code and ML propensity model artifact
 COPY backend /app/backend
+COPY models /app/models
 
 ENV PYTHONPATH=/app
 ENV PORT=10000
