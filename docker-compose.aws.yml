@@ -1,0 +1,76 @@
+# Independent AWS Deployment Stack (FastAPI + Laya Singleton Backend & Streamlit Frontend)
+# Target instances: t3a.large / t3.large / m6i.large (8 GB RAM)
+# Persistent Docker volume `laya_cache` prevents re-downloading convaiinnovations/laya weights across restarts.
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.aws
+    image: nbo-aws-full:latest
+    container_name: nbo-backend-aws
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      APP_ENV: aws
+      PORT: "8000"
+      LAYA_ENABLED: "true"
+      LAYA_PRELOAD_ON_STARTUP: "true"
+      LAYA_MODEL: english
+      LAYA_DEVICE: cpu
+      LAYA_CPU_BFLOAT16: "false"
+      LAYA_MAX_CANDIDATES: "5"
+      LAYA_THREADS: "0"
+      LAYA_TIMEOUT_SECONDS: "45"
+      LAYA_CACHE_DIR: /app/.laya-cache
+      HF_HOME: /app/.laya-cache
+    ports:
+      - "8000:8000"
+    volumes:
+      - laya_cache:/app/.laya-cache
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.aws
+    image: nbo-aws-full:latest
+    container_name: nbo-frontend-aws
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      API_BASE_URL: http://backend:8000/api/v1
+      API_TIMEOUT_SECONDS: "15"
+      RECOMMEND_TIMEOUT_SECONDS: "90"
+    command:
+      [
+        "streamlit",
+        "run",
+        "frontend/app.py",
+        "--server.port",
+        "8501",
+        "--server.address",
+        "0.0.0.0",
+        "--server.headless",
+        "true",
+      ]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    ports:
+      - "8501:8501"
+
+volumes:
+  laya_cache:
+    name: nbo_laya_cache

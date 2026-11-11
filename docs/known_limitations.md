@@ -9,7 +9,7 @@
 3. **Real-time Inventory Latency**:
    - Inventory checks execute synchronously against Neon PostgreSQL. For ultra-low latency (<5ms at scale), an in-memory cache (Redis/KeyDB) with CDC (Change Data Capture) will be required.
 4. **Single-Node Optimization**:
-   - Decision optimization uses greedy deterministic ranking. Multi-item combinatorial basket constraints (e.g., maximum shipping box capacity) will benefit from integer programming solvers (e.g. Laya adapter).
+   - Decision optimization uses the lightweight deterministic weighted decision engine over policy-feasible offers. Multi-item combinatorial basket constraints (e.g., maximum shipping box capacity) will benefit from dedicated integer programming solvers in a future phase.
 
 ---
 

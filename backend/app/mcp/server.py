@@ -1,57 +1,58 @@
-"""Local stdio MCP server exposing deterministic recommendation tools."""
+"""Local stdio MCP server exposing deterministic recommendation and decision tools."""
 
 from __future__ import annotations
 
+import csv
 import logging
 import sys
-import csv
-import json
 from datetime import date, datetime
 from decimal import Decimal
+from pathlib import Path
 from typing import Any
 
 from mcp.server.mcpserver import MCPServer
+from sqlalchemy import select
 
-from backend.app.db.repositories import CustomerRepository, OperationalCatalogueRepository
+from backend.app.db.models import Product, Transaction
+from backend.app.db.repositories import OperationalCatalogueRepository
 from backend.app.db.session import get_db_context
-from backend.app.recommendation.policy_engine import evaluate_product
-from backend.app.recommendation.recommendation_model import RecommendationModel
-from backend.app.recommendation.candidate_generator import generate_candidates
+from backend.app.decision.baseline_ranker import rank_feasible_candidates
+from backend.app.decision.laya_adapter import LayaAdapter
+from backend.app.decision.weighted_engine import WeightedDecisionEngine
 from backend.app.mcp.schemas import (
     CustomerContext,
     CustomerInput,
     CustomerProfile,
+    DecisionEngineInput,
+    DecisionEngineOutput,
+    EvaluationOutput,
     FinalExclusion,
-    FinalRecommendation,
     FinalizeInput,
     FinalizeOutput,
+    FinalRecommendation,
+    Interaction,
     InventoryDetails,
     InventoryInput,
-    Interaction,
     PolicyInput,
     PolicyOutput,
-    RecommendationInput,
-    RecommendationOutput,
-    ScoredCandidate,
-    EvaluationOutput,
     ProductDetailsInput,
     ProductDetailsOutput,
     PurchaseHistoryInput,
     PurchaseHistoryItem,
     PurchaseHistoryOutput,
-    LayaInput,
-    LayaOutput,
-    ValidateFinalInput,
-    ValidateFinalOutput,
+    RecommendationInput,
+    RecommendationOutput,
     SaveDecisionInput,
     SaveDecisionOutput,
+    ScoredCandidate,
+    ValidateFinalInput,
+    ValidateFinalOutput,
 )
-from backend.app.db.models import Product, Transaction
-from backend.app.decision.laya_adapter import LayaAdapter
-from backend.app.services.audit_service import AuditService
-from sqlalchemy import select
-from pathlib import Path
+from backend.app.recommendation.candidate_generator import generate_candidates
 from backend.app.recommendation.customer_context import get_customer_context as load_customer_context
+from backend.app.recommendation.policy_engine import evaluate_product
+from backend.app.recommendation.recommendation_model import RecommendationModel
+from backend.app.services.audit_service import AuditService
 
 
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
@@ -59,7 +60,7 @@ logger = logging.getLogger("nbo.mcp.server")
 server = MCPServer(
     name="nbo-deterministic-multi-agent",
     version="1.0.0",
-    instructions="Deterministic supply-constrained recommendation tools.",
+    instructions="Deterministic supply-constrained recommendation and weighted decision tools.",
 )
 
 
@@ -184,6 +185,9 @@ def get_inventory_details(request: InventoryInput) -> InventoryDetails:
                 shipping_days=None,
                 reward_eligible=None,
                 promotion_eligible=None,
+                reorder_point=None,
+                max_discount_pct=None,
+                data_freshness_status=None,
                 verification_status="missing",
                 error="Product or operational catalogue record not found.",
             )
@@ -196,6 +200,9 @@ def get_inventory_details(request: InventoryInput) -> InventoryDetails:
             shipping_days=row["shipping_days"],
             reward_eligible=row["reward_eligible"],
             promotion_eligible=row["promotion_eligible"],
+            reorder_point=row.get("reorder_point"),
+            max_discount_pct=_json_value(row.get("max_discount_pct")),
+            data_freshness_status=row.get("data_freshness_status"),
             verification_status="verified",
         )
     except Exception as error:
@@ -209,6 +216,9 @@ def get_inventory_details(request: InventoryInput) -> InventoryDetails:
             shipping_days=None,
             reward_eligible=None,
             promotion_eligible=None,
+            reorder_point=None,
+            max_discount_pct=None,
+            data_freshness_status=None,
             verification_status="failed",
             error=str(error),
         )
@@ -252,6 +262,9 @@ def finalize_decision(request: FinalizeInput) -> FinalizeOutput:
                     product_name=candidate.product_name,
                     recommendation_score=candidate.recommendation_score,
                     policy_decision="PASS",
+                    objective_scores=candidate.objective_scores,
+                    weighted_score=candidate.weighted_score,
+                    rank=candidate.rank,
                 )
             )
         else:
@@ -264,7 +277,14 @@ def finalize_decision(request: FinalizeInput) -> FinalizeOutput:
                     policy_reasons=result["reasons"],
                 )
             )
-    feasible.sort(key=lambda item: (-item.recommendation_score, item.product_id))
+    feasible.sort(
+        key=lambda item: (
+            item.rank if item.rank is not None else 9999,
+            -(item.weighted_score if item.weighted_score is not None else item.recommendation_score),
+            -item.recommendation_score,
+            item.product_id,
+        )
+    )
     return FinalizeOutput(
         status="SUCCESS" if feasible else "ALL_CANDIDATES_EXCLUDED",
         recommendations=feasible,
@@ -290,26 +310,73 @@ def validate_final_decision(request: ValidateFinalInput) -> ValidateFinalOutput:
 
 
 @server.tool(structured_output=True)
-def run_laya_decision(request: LayaInput) -> LayaOutput:
-    """Run local Laya only over candidates supplied by the policy agent."""
+def run_laya_decision(request: DecisionEngineInput) -> DecisionEngineOutput:
+    """Run real Laya decision inference strictly over policy-feasible candidates with weighted fallback."""
     candidates = [item.model_dump() for item in request.candidates]
+    weighted = WeightedDecisionEngine()
+    weights: dict[str, float] = {}
+    objective_scores: dict[str, dict[str, Any]] = {}
+    ranked_pool = list(candidates)
+    if weighted.enabled:
+        try:
+            weighted_eval = weighted.choose(candidates, express_context=request.express_context)
+            weights = weighted_eval["weights"]
+            objective_scores = weighted_eval["objective_scores"]
+            ranked_pool = weighted_eval["ranked_candidates"]
+        except Exception:
+            ranked_pool = list(candidates)
+
     adapter = LayaAdapter()
-    if not adapter.enabled:
-        selected = sorted(
-            candidates,
-            key=lambda item: (-item["recommendation_score"], item["product_id"]),
-        )[0]
-        return LayaOutput(
-            status="FALLBACK",
-            selected_product_id=selected["product_id"],
-            explanation=adapter.reason,
+    try:
+        laya_result = adapter.choose(ranked_pool, express_context=request.express_context)
+        chosen_id = str(laya_result["selected_product_id"])
+        chosen_item = laya_result["selected"]
+        rest = [c for c in ranked_pool if str(c.get("product_id")) != chosen_id]
+        ordered = [chosen_item] + rest
+        for idx, item in enumerate(ordered, start=1):
+            item["rank"] = idx
+        return DecisionEngineOutput(
+            status="LAYA",
+            selected_product_id=chosen_id,
+            explanation=laya_result["explanation"],
+            confidence=laya_result.get("confidence"),
+            weights=weights,
+            objective_scores=objective_scores,
+            ranked_candidates=ordered,
+            fallback_reason=None,
         )
-    result = adapter.choose(candidates)
-    return LayaOutput(
-        status="LAYA",
-        selected_product_id=result["selected"]["product_id"],
-        explanation=result["explanation"],
-    )
+    except Exception as error:
+        if weighted.enabled and ranked_pool:
+            chosen_id = str(ranked_pool[0]["product_id"])
+            return DecisionEngineOutput(
+                status="FALLBACK",
+                selected_product_id=chosen_id,
+                explanation=(
+                    f"Laya unavailable or invalid ({error}); deterministic weighted fallback "
+                    f"selected {chosen_id}."
+                ),
+                weights=weights,
+                objective_scores=objective_scores,
+                ranked_candidates=ranked_pool,
+                fallback_reason=str(error),
+            )
+        ranked_baseline = rank_feasible_candidates(candidates, top_k=len(candidates))
+        chosen_id = str(ranked_baseline[0]["product_id"])
+        return DecisionEngineOutput(
+            status="FALLBACK",
+            selected_product_id=chosen_id,
+            explanation=f"Baseline ranker selected {chosen_id} after Laya error: {error}",
+            weights={},
+            objective_scores={},
+            ranked_candidates=ranked_baseline,
+            fallback_reason=str(error),
+        )
+
+
+@server.tool(structured_output=True)
+def run_decision_engine(request: DecisionEngineInput) -> DecisionEngineOutput:
+    """Delegate to primary Laya decision engine (alias preserved for tool compatibility)."""
+    return run_laya_decision(request)
 
 
 @server.tool(structured_output=True)
@@ -337,6 +404,7 @@ def save_decision(request: SaveDecisionInput) -> SaveDecisionOutput:
         "all_evaluated_candidates": [item.model_dump() for item in request.candidates],
         "recommendations": [item.model_dump() for item in request.candidates],
         "excluded_candidates": [],
+        "decision_method": "WEIGHTED_DECISION",
     }
     with get_db_context() as session:
         decision_id = AuditService(session).log_decision_audit(payload)

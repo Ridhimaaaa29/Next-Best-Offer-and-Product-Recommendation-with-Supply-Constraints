@@ -11,11 +11,13 @@ The system decouples **customer demand/preference modeling** from **supply/opera
               ↓
     ML / Heuristic Scoring (Gradient Boosting Conversion Propensity)
               ↓
-  Deterministic Policy Engine (Stock > 0, Margin >= 10%, Active Status, Context Rules)
+  Deterministic Policy Engine (Stock > 0, Known/Fresh Inventory, Margin >= 10%, Active Status, Context Rules)
               ↓
-    Deterministic Ranker (Feasible items sorted by Score DESC, Product ID ASC)
+    Laya Decision Engine (Lazy Singleton, CPU/bf16, Capped Feasible Shortlist)
               ↓
-    Top-K Output with Audit Log (Includes pass items and reason-annotated exclusions)
+    Final Policy Revalidation + WeightedDecisionEngine Fallback (when Laya unavailable/invalid)
+              ↓
+    Top-K Output with PostgreSQL Audit Log (Includes pass items, objective scores, Laya selection, and exclusions)
 ```
 
 ### 2. Core Subsystems

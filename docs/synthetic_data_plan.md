@@ -25,7 +25,7 @@ products ◄──(1:1)──► operational_catalogue ◄── policy_rules
    └──────────────► Deterministic Policy Filter ◄────┘
                            │
                            ▼ [Feasible Candidate Offers]
-                    Decision Layer (OpenJEV / Laya)
+                    Weighted Multi-Objective Decision Engine
                            │
                            ▼
                     Next-Best-Offer Actionable Output

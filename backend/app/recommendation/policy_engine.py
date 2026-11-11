@@ -2,6 +2,7 @@ import psycopg
 from backend.app.config import settings
 
 DATABASE_URL = settings.database_url
+FRESH_DATA_STATUSES = {"verified_fresh", "fresh"}
 
 
 def evaluate_product(
@@ -9,18 +10,21 @@ def evaluate_product(
     reward_context: bool = False,
     promotion_context: bool = False,
     express_context: bool = False,
+    requested_discount_pct: float | None = None,
 ) -> dict:
     """
     Evaluate a product against the deterministic business constraints.
 
     Hard constraints:
     - Product must be active.
-    - Inventory must be known and greater than zero.
+    - Inventory must be known (not NULL and not 'unknown') and greater than zero.
+    - Operational catalogue record must not be stale/unverified.
     - Gross margin must be at least 10%.
 
     Context-dependent constraints:
     - Reward eligibility applies in reward context.
     - Promotion eligibility applies in promotion context.
+    - Discount limits apply when requested_discount_pct is supplied.
     - Shipping threshold applies in express context.
 
     Returns:
@@ -48,7 +52,9 @@ def evaluate_product(
                     oc.gross_margin_pct,
                     oc.shipping_days,
                     oc.reward_eligible,
-                    oc.promotion_eligible
+                    oc.promotion_eligible,
+                    oc.data_freshness_status,
+                    oc.max_discount_pct
                 FROM products p
                 JOIN operational_catalogue oc
                     ON p.product_id = oc.product_id
@@ -65,23 +71,50 @@ def evaluate_product(
                     f"{product_id}"
                 )
 
-            (
-                product_id,
-                product_status,
-                available_stock,
-                inventory_status,
-                gross_margin_pct,
-                shipping_days,
-                reward_eligible,
-                promotion_eligible,
-            ) = row
+            data_freshness_status = "verified_fresh"
+            max_discount_pct = None
+            if len(row) >= 10:
+                (
+                    product_id,
+                    product_status,
+                    available_stock,
+                    inventory_status,
+                    gross_margin_pct,
+                    shipping_days,
+                    reward_eligible,
+                    promotion_eligible,
+                    data_freshness_status,
+                    max_discount_pct,
+                ) = row[:10]
+            elif len(row) == 9:
+                (
+                    product_id,
+                    product_status,
+                    available_stock,
+                    inventory_status,
+                    gross_margin_pct,
+                    shipping_days,
+                    reward_eligible,
+                    promotion_eligible,
+                    data_freshness_status,
+                ) = row
+            else:
+                (
+                    product_id,
+                    product_status,
+                    available_stock,
+                    inventory_status,
+                    gross_margin_pct,
+                    shipping_days,
+                    reward_eligible,
+                    promotion_eligible,
+                ) = row[:8]
 
     reasons = []
     flags = []
 
     # ----------------------------------------------------------
-    # RULE_STATUS_001
-    # Product must be active.
+    # RULE_STATUS_001: Product must be active.
     # ----------------------------------------------------------
     if product_status != "active":
         reasons.append(
@@ -89,25 +122,30 @@ def evaluate_product(
         )
 
     # ----------------------------------------------------------
-    # RULE_STK_001
-    # Known zero / negative inventory → EXCLUDE
+    # RULE_STK_001: Known zero / negative inventory -> EXCLUDE
     # ----------------------------------------------------------
     if available_stock is not None and available_stock <= 0:
         reasons.append("Product is out of stock.")
 
     # ----------------------------------------------------------
-    # RULE_STK_002
-    # Unknown inventory → EXCLUDE
-    #
-    # Fail-safe behavior:
-    # unknown inventory is NOT treated as available.
+    # RULE_STK_002: Unknown inventory -> EXCLUDE (fail-safe)
     # ----------------------------------------------------------
-    if available_stock is None:
+    if available_stock is None or str(inventory_status or "").strip().lower() == "unknown":
         reasons.append("Inventory availability is unknown.")
 
     # ----------------------------------------------------------
-    # RULE_MAR_001
-    # Margin below 10% → EXCLUDE
+    # RULE_FRESH_001: Stale or unverified operational data -> EXCLUDE
+    # ----------------------------------------------------------
+    if (
+        data_freshness_status is None
+        or str(data_freshness_status).strip().lower() not in FRESH_DATA_STATUSES
+    ):
+        reasons.append(
+            f"Operational inventory data is stale or unverified ({data_freshness_status})."
+        )
+
+    # ----------------------------------------------------------
+    # RULE_MAR_001: Margin below 10% -> EXCLUDE
     # ----------------------------------------------------------
     if gross_margin_pct < 0.10:
         reasons.append(
@@ -116,8 +154,7 @@ def evaluate_product(
         )
 
     # ----------------------------------------------------------
-    # RULE_REW_001
-    # Reward context only
+    # RULE_REW_001: Reward context only
     # ----------------------------------------------------------
     if reward_context and not reward_eligible:
         reasons.append(
@@ -125,8 +162,7 @@ def evaluate_product(
         )
 
     # ----------------------------------------------------------
-    # RULE_PRO_001
-    # Promotion context only
+    # RULE_PRO_001: Promotion context only
     # ----------------------------------------------------------
     if promotion_context and not promotion_eligible:
         reasons.append(
@@ -134,8 +170,20 @@ def evaluate_product(
         )
 
     # ----------------------------------------------------------
-    # RULE_FUL_001
-    # Express context only
+    # RULE_DSC_001: Discount limit check
+    # ----------------------------------------------------------
+    if (
+        requested_discount_pct is not None
+        and max_discount_pct is not None
+        and float(requested_discount_pct) > float(max_discount_pct)
+    ):
+        reasons.append(
+            f"Requested discount ({float(requested_discount_pct):.2%}) exceeds "
+            f"maximum permitted limit ({float(max_discount_pct):.2%})."
+        )
+
+    # ----------------------------------------------------------
+    # RULE_FUL_001: Express context only
     # ----------------------------------------------------------
     if express_context and shipping_days > 7:
         flags.append(
@@ -143,9 +191,6 @@ def evaluate_product(
             "the 7-day express threshold."
         )
 
-    # ----------------------------------------------------------
-    # Final deterministic decision
-    # ----------------------------------------------------------
     decision = "EXCLUDE" if reasons else "PASS"
 
     return {

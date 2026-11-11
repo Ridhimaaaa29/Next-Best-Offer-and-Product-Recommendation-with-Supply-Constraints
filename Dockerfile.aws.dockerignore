@@ -1,0 +1,41 @@
+# Build context ignore rules for Dockerfile.aws
+# Keeps Render .dockerignore untouched while explicitly ALLOWING reports/ and data/synthetic/ in the AWS build.
+
+.git/
+.gitignore
+
+# Python environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Host caches (mounted persistently at /app/.laya-cache on EC2 rather than duplicated in image layers)
+.laya-cache/
+.hf-cache/
+.pip-cache/
+
+# Local credentials and environment files
+.env
+.env.*
+!.env.example
+!.env.aws.example
+
+# Local IDE and OS metadata
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# Raw/temporary datasets (data/synthetic/*.csv and reports/ ARE intentionally included for AWS full features)
+data/raw/
+data/processed/
+data/*.sqlite
+scripts/test_mcp_workflow_call.py
+scripts/verify_e2e_runtime.py

@@ -33,6 +33,15 @@ class RecommendedProductSchema(BaseModel):
     policy_decision: str = Field(..., description="Policy decision: PASS")
     policy_reasons: List[str] = Field(default_factory=list, description="Policy reason codes")
     score_breakdown: ScoreExplanationSchema = Field(..., description="Detailed score component breakdown")
+    objective_scores: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Normalized multi-objective scores (relevance, margin, diversity, operational_friction)",
+    )
+    weighted_score: Optional[float] = Field(
+        default=None,
+        description="Weighted composite decision score",
+    )
+    rank: Optional[int] = Field(default=None, description="Final decision rank (1 = top)")
 
     model_config = ConfigDict(extra="ignore")
 
@@ -96,13 +105,52 @@ class RecommendationRequest(BaseModel):
 
 
 class RecommendationResponse(BaseModel):
-    status: str = Field(..., description="Decision status: SUCCESS, ALL_CANDIDATES_EXCLUDED, LAYA_UNAVAILABLE, or LAYA_FAILED")
+    status: str = Field(..., description="Decision status: SUCCESS, ALL_CANDIDATES_EXCLUDED, or NO_CANDIDATES")
     customer_id: str = Field(..., description="Target customer identifier")
+    decision_id: Optional[str] = Field(default=None, description="Persisted PostgreSQL DecisionAudit ID")
     candidate_count: int = Field(..., description="Total candidates generated")
     feasible_count: int = Field(..., description="Total candidates passing all policy constraints")
     excluded_count: int = Field(..., description="Total candidates excluded by policy constraints")
-    decision_method: Optional[str] = Field(default="DETERMINISTIC", description="Decision engine used: LAYA or DETERMINISTIC")
-    laya_status: Optional[str] = Field(default=None, description="Laya execution status: SUCCESS, UNAVAILABLE, REVALIDATION_FAILED, MALFORMED_OUTPUT")
+    decision_method: Optional[str] = Field(
+        default="LAYA",
+        description="Decision engine used: LAYA, WEIGHTED_DECISION_FALLBACK, DETERMINISTIC_FALLBACK, or NONE",
+    )
+    laya_status: Optional[str] = Field(
+        default=None,
+        description="Laya decision status: SUCCESS, FALLBACK, UNAVAILABLE, or SKIPPED_NO_FEASIBLE_CANDIDATES",
+    )
+    decision_engine_status: Optional[str] = Field(
+        default=None,
+        description="Execution state of the decision layer (LAYA_PRIMARY, FALLBACK, SKIPPED_*)",
+    )
+    decision_weights: Optional[Dict[str, float]] = Field(
+        default=None,
+        description="Normalized multi-objective weights used by the weighted decision engine",
+    )
+    objective_scores: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Per-product normalized objective scores",
+    )
+    final_ranking: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="Final ranked candidate summary with weighted scores",
+    )
+    final_validation: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Authoritative post-selection policy revalidation result",
+    )
+    decision_explanation: Optional[str] = Field(
+        default=None,
+        description="Transparent business explanation of the selected offer",
+    )
+    fallback_used: bool = Field(
+        default=False,
+        description="True when deterministic baseline ranker fallback was invoked",
+    )
+    fallback_reason: Optional[str] = Field(
+        default=None,
+        description="Reason the deterministic fallback was used, if applicable",
+    )
     recommendations: List[RecommendedProductSchema] = Field(
         default_factory=list,
         description="Ranked list of policy-feasible recommended products",

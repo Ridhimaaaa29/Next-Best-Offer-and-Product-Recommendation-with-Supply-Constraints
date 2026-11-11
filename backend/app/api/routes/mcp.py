@@ -8,11 +8,14 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from sqlalchemy.orm import Session
 
 from backend.app.api.schemas.common import ErrorResponse
 from backend.app.api.schemas.mcp import MCPWorkflowRequest
+from backend.app.db.session import get_db
 from backend.app.mcp.workflow import MCPWorkflowResult, _run_workflow
+from backend.app.services.audit_service import AuditService
 
 logger = logging.getLogger("nbo.api.mcp")
 router = APIRouter(tags=["MCP Workflow"])
@@ -47,19 +50,21 @@ def _sanitize_error_message(error: str | None) -> str | None:
         404: {"model": MCPWorkflowResult, "description": "Customer not found"},
         422: {"description": "Validation error"},
         500: {"model": ErrorResponse, "description": "Internal server error"},
-        502: {"model": MCPWorkflowResult, "description": "Laya decision layer failed or invalid selection, or upstream MCP tool failure"},
-        503: {"model": MCPWorkflowResult, "description": "Laya decision layer unavailable or disabled"},
+        502: {"model": MCPWorkflowResult, "description": "Upstream MCP tool failure"},
+        503: {"model": ErrorResponse, "description": "Decision audit persistence failed"},
     },
     summary="Execute Sequential Multi-Agent MCP Recommendation Workflow",
     description=(
-        "Executes the full deterministic multi-agent workflow communicating via MCP tools: "
+        "Executes the 6-stage multi-agent workflow via in-process MCP tools: "
         "Customer Agent -> Recommendation Agent -> Inventory Agent -> Policy Agent -> "
-        "Mandatory Laya Decision -> Final Policy Revalidation & Inventory Safety."
+        "Decision Agent (Laya Model with Weighted Fallback) -> Final Decision Agent "
+        "(Revalidation & Safety) with persisted PostgreSQL audit."
     ),
 )
 async def execute_mcp_workflow(
     request: MCPWorkflowRequest,
     response: Response,
+    db: Session = Depends(get_db),
 ) -> MCPWorkflowResult:
     logger.info(
         "Received MCP workflow execution request",
@@ -98,25 +103,45 @@ async def execute_mcp_workflow(
         if agent_exec.error:
             agent_exec.error = _sanitize_error_message(agent_exec.error)
 
-    # Map failures to appropriate HTTP status codes while preserving full structured audit contract
+    is_customer_not_found = False
     if result.status == "FAILED_SAFE":
-        laya_agent = next((a for a in result.agents if a.agent == "Laya Agent"), None)
-        decision_agent = next((a for a in result.agents if a.agent == "Decision Agent"), None)
         customer_agent = next((a for a in result.agents if a.agent == "Customer Agent"), None)
-
         err_lower = (result.error or "").lower()
-
         if customer_agent and customer_agent.status == "failed_safe" and "not found" in err_lower:
+            is_customer_not_found = True
             response.status_code = status.HTTP_404_NOT_FOUND
-        elif laya_agent and laya_agent.status == "failed_laya_unavailable":
-            response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-        elif (
-            (laya_agent and laya_agent.status in ("failed_invalid_selection", "failed_safe"))
-            or (decision_agent and decision_agent.status in ("laya_selection_infeasible", "failed_safe"))
-            or "laya" in err_lower
-        ):
-            response.status_code = status.HTTP_502_BAD_GATEWAY
         else:
             response.status_code = status.HTTP_502_BAD_GATEWAY
+
+    if not is_customer_not_found:
+        rec_agent = next((a for a in result.agents if a.agent == "Recommendation Agent"), None)
+        all_candidates = (
+            (rec_agent.output or {}).get("candidates", [])
+            if rec_agent and isinstance(rec_agent.output, dict)
+            else []
+        )
+        audit_payload = {
+            "customer_id": result.customer_id,
+            "status": result.status,
+            "all_evaluated_candidates": all_candidates,
+            "recommendations": [item.model_dump() for item in result.recommendations],
+            "excluded_candidates": [item.model_dump() for item in result.excluded_candidates],
+            "selected_product_id": result.selected_product_id,
+            "decision_method": result.decision_method or "NONE",
+            "decision_weights": result.decision_weights,
+            "objective_scores": result.objective_scores,
+            "final_validation": result.final_validation,
+            "decision_explanation": result.decision_explanation,
+            "fallback_used": result.fallback_used,
+            "fallback_reason": result.fallback_reason or result.error,
+        }
+        try:
+            result.decision_id = AuditService(db).log_decision_audit(audit_payload)
+        except Exception as audit_err:
+            logger.exception("Failed to persist MCP workflow audit record")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=f"MCP workflow completed but decision audit persistence failed: {audit_err}",
+            ) from audit_err
 
     return result

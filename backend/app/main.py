@@ -3,11 +3,14 @@ FastAPI Main Application Entry Point
 Project: Next-Best-Offer and Product Recommendation with Supply Constraints
 """
 
+import os
 import sys
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 
 from backend.app.config import settings
+from backend.app.decision.laya_adapter import LayaAdapter
 from backend.app.observability.logging import configure_logging, get_logger
 from backend.app.middleware.request_id import RequestIdMiddleware
 from backend.app.middleware.error_handler import LoggingMiddleware, validation_exception_handler
@@ -27,6 +30,29 @@ configure_logging(level=settings.log_level)
 logger = get_logger("app.main")
 logger.info(f"FastAPI starting with python_executable={sys.executable}")
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    env_preload = os.getenv("LAYA_PRELOAD_ON_STARTUP")
+    preload_enabled = (
+        env_preload.strip().lower() in ("true", "1", "yes")
+        if env_preload is not None
+        else bool(getattr(settings, "laya_preload_on_startup", False))
+    )
+    if preload_enabled:
+        adapter = LayaAdapter()
+        if adapter.enabled:
+            logger.info(
+                "Preloading Laya decision model on startup",
+                app_env=adapter.status_info().get("app_env"),
+                model=adapter.status_info().get("model"),
+                cache_dir=adapter.status_info().get("cache_dir"),
+            )
+            warmup_result = adapter.warmup()
+            logger.info("Laya startup warmup completed", **warmup_result)
+    yield
+
+
 app = FastAPI(
     title=settings.app_title,
     version=settings.app_version,
@@ -34,6 +60,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    lifespan=lifespan,
 )
 
 # Register Middleware

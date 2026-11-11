@@ -1,0 +1,29 @@
+# Next-Best-Offer Full-Featured AWS Production Dependencies
+# Separate from Render's lightweight backup (backend/requirements-render.txt).
+# Install CPU-only PyTorch first via Dockerfile.aws (--index-url https://download.pytorch.org/whl/cpu)
+# or pip install --extra-index-url https://download.pytorch.org/whl/cpu -r backend/requirements-aws.txt
+
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+fastapi==0.162.0
+uvicorn[standard]==0.54.0
+pydantic==2.13.4
+pydantic-settings==2.16.2
+sqlalchemy==2.1.6
+alembic==1.20.1
+psycopg[binary]==3.3.6
+structlog==26.1.0
+python-dotenv==1.2.3
+httpx==0.28.1
+joblib==1.5.3
+scikit-learn==1.9.1
+numpy>=1.26.0
+pandas>=2.0.0
+mcp==2.3.0
+torch>=2.2.0
+transformers>=4.48.0
+safetensors>=0.4.0
+huggingface_hub>=0.26.0
+laya==0.4.26
+streamlit>=1.30.0
+requests>=2.28.0

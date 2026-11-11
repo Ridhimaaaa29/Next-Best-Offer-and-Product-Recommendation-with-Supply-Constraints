@@ -572,6 +572,9 @@ def test_operational_catalogue_repository_get_product_policy_data_returns_all_fi
         "shipping_days": 4,
         "reward_eligible": True,
         "promotion_eligible": True,
+        "reorder_point": 2,
+        "max_discount_pct": Decimal("0.1000"),
+        "data_freshness_status": "current",
     }
     assert set(policy_data) == {
         "product_id",
@@ -582,6 +585,9 @@ def test_operational_catalogue_repository_get_product_policy_data_returns_all_fi
         "shipping_days",
         "reward_eligible",
         "promotion_eligible",
+        "reorder_point",
+        "max_discount_pct",
+        "data_freshness_status",
     }
     assert isinstance(policy_data["product_id"], str)
     assert isinstance(policy_data["product_status"], str)

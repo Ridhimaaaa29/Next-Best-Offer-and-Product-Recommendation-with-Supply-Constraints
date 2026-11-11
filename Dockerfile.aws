@@ -1,0 +1,54 @@
+# Full-Featured AWS Production Image (Laya + PyTorch CPU + ML Propensity + MCP + Reports + Streamlit)
+# Independent from Render's lightweight Dockerfile (kept untouched as backup).
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install OS runtime & build tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install CPU-only PyTorch first to avoid multi-GB CUDA GPU downloads on CPU instances (t3a/t3/m6i)
+RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu "torch>=2.2.0"
+
+# Install full backend + frontend + Laya dependencies
+COPY backend/requirements-aws.txt /app/requirements-aws.txt
+RUN pip install --no-cache-dir -r /app/requirements-aws.txt
+
+# Copy full application code, ML model artifact, evaluation reports, and synthetic catalogue assets
+COPY backend /app/backend
+COPY frontend /app/frontend
+COPY models /app/models
+COPY reports /app/reports
+COPY data/synthetic /app/data/synthetic
+
+# Persistent cache directory for Laya / HuggingFace model weights (mount volume here in production)
+RUN mkdir -p /app/.laya-cache
+
+ENV PYTHONPATH=/app \
+    PYTHONUNBUFFERED=1 \
+    PORT=8000 \
+    USE_TF=0 \
+    APP_ENV=aws \
+    LAYA_ENABLED=true \
+    LAYA_PRELOAD_ON_STARTUP=true \
+    LAYA_MODEL=english \
+    LAYA_DEVICE=cpu \
+    LAYA_CPU_BFLOAT16=false \
+    LAYA_MAX_CANDIDATES=5 \
+    LAYA_THREADS=0 \
+    LAYA_TIMEOUT_SECONDS=45 \
+    LAYA_CACHE_DIR=/app/.laya-cache \
+    HF_HOME=/app/.laya-cache \
+    RECOMMEND_TIMEOUT_SECONDS=90
+
+EXPOSE 8000 8501
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=180s --retries=3 \
+    CMD curl -fsS http://127.0.0.1:${PORT:-8000}/api/v1/health || exit 1
+
+# Single Uvicorn worker strictly preserved so all HTTP + MCP calls share one ~2.2 GB Laya singleton
+CMD ["sh", "-c", "exec uvicorn backend.app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]

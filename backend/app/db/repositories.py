@@ -142,6 +142,9 @@ class OperationalCatalogueRepository:
                 OperationalCatalogue.shipping_days,
                 OperationalCatalogue.reward_eligible,
                 OperationalCatalogue.promotion_eligible,
+                OperationalCatalogue.reorder_point,
+                OperationalCatalogue.max_discount_pct,
+                OperationalCatalogue.data_freshness_status,
             )
             .join(
                 OperationalCatalogue,
@@ -151,3 +154,29 @@ class OperationalCatalogueRepository:
         ).mappings().one_or_none()
 
         return dict(row) if row is not None else None
+
+    def get_products_policy_map(self, product_ids: List[str]) -> dict[str, dict]:
+        if not product_ids:
+            return {}
+        rows = self.session.execute(
+            select(
+                Product.product_id,
+                Product.product_status,
+                OperationalCatalogue.available_stock,
+                OperationalCatalogue.inventory_status,
+                OperationalCatalogue.gross_margin_pct,
+                OperationalCatalogue.shipping_days,
+                OperationalCatalogue.reward_eligible,
+                OperationalCatalogue.promotion_eligible,
+                OperationalCatalogue.reorder_point,
+                OperationalCatalogue.max_discount_pct,
+                OperationalCatalogue.data_freshness_status,
+            )
+            .join(
+                OperationalCatalogue,
+                Product.product_id == OperationalCatalogue.product_id,
+            )
+            .where(Product.product_id.in_(product_ids))
+        ).mappings().all()
+
+        return {str(row["product_id"]): dict(row) for row in rows}

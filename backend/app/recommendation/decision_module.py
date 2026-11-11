@@ -1,47 +1,40 @@
 """
-Deterministic Decision Module with Mandatory Laya Integration (Day 3 Step 2)
-Project: Next-Best-Offer and Product Recommendation with Supply Constraints
+Supply-Constrained Decision Module with Lightweight Laya + Weighted Fallback.
 
-Integrates scored recommendation candidates from `recommendation_model.py`
-with the deterministic business constraints in `policy_engine.py` and the
-mandatory Laya decision layer from `backend.app.decision.laya_adapter`.
-
-Required Architecture:
+Architecture:
 Customer ID
   -> Candidate Generation
-  -> Recommendation Model Scoring (Preference / Affinity / Popularity / Rating)
-  -> Policy Engine Evaluation (Stock > 0, Stock not NULL, Margin >= 10%, Active, Context rules)
+  -> Recommendation Model Scoring (Gradient Boosting Propensity / Heuristic)
+  -> Authoritative Deterministic Policy Engine (Active, Stock > 0, Known/Fresh Inventory, Margin >= 10%, Contexts)
   -> Remove EXCLUDE Candidates (Strict Infeasibility Pruning)
-  -> Laya Decision Layer: Compares only policy-feasible candidate pool
-  -> Policy Engine Revalidation: Selected candidate validated again before final decision
-  -> Safe Failure Guarantee: Never silently report a fallback as a Laya decision
-  -> Top-K Structured Output with decision provenance and audit records.
-
-Strict Guarantees:
-- Laya may select ONLY from policy-feasible candidates.
-- Any candidate with policy decision == "EXCLUDE" NEVER appears in final recommendations.
-- Missing operational records are safely excluded with explicit reason.
-- Both final recommendations and rejected candidates are retained for full auditability.
+  -> Capped Feasible Shortlist -> Laya Decision Layer (lazy singleton, CPU, bounded candidates)
+  -> Authoritative Policy Revalidation of Laya Selection
+  -> Fallback to WeightedDecisionEngine (and Baseline Ranker if needed) ONLY when Laya fails/unavailable/invalid
+  -> Top-K Structured Output with objective scores, weights, and audit metadata.
 """
+
+from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
 
-from backend.app.db.repositories import CustomerRepository
+from backend.app.db.repositories import CustomerRepository, OperationalCatalogueRepository
 from backend.app.db.session import SessionLocal
+from backend.app.decision.baseline_ranker import rank_feasible_candidates
+from backend.app.decision.laya_adapter import LayaAdapter
+from backend.app.decision.weighted_engine import WeightedDecisionEngine
 from backend.app.recommendation.recommendation_model import (
     RecommendationModel,
     ScoredCandidate,
 )
-from backend.app.recommendation.candidate_generator import generate_candidates
 from backend.app.recommendation.policy_engine import evaluate_product
-from backend.app.decision.laya_adapter import LayaAdapter
 
 
 class DecisionModule:
     """
-    Decision Engine combining recommendation scoring, deterministic policy constraints,
-    and the mandatory Laya decision layer.
+    Decision Engine combining Gradient Boosting recommendation scoring,
+    deterministic supply/policy constraints, primary Laya inference, and
+    lightweight weighted deterministic fallback.
     """
 
     def __init__(
@@ -49,10 +42,26 @@ class DecisionModule:
         recommender: Optional[RecommendationModel] = None,
         session: Optional[Session] = None,
         laya_adapter: Optional[LayaAdapter] = None,
+        decision_engine: Optional[WeightedDecisionEngine] = None,
     ):
         self.recommender = recommender or RecommendationModel(session=session)
         self.session = session
-        self.laya_adapter = laya_adapter if laya_adapter is not None else LayaAdapter()
+        self.laya_adapter = laya_adapter or LayaAdapter()
+        self.decision_engine = decision_engine or WeightedDecisionEngine()
+
+    def _load_operational_map(self, product_ids: List[str]) -> Dict[str, Dict[str, Any]]:
+        """Best-effort fetch of operational catalogue metrics for objective scoring."""
+        if not product_ids:
+            return {}
+        try:
+            if self.session is not None:
+                result = OperationalCatalogueRepository(self.session).get_products_policy_map(product_ids)
+                return result if isinstance(result, dict) else {}
+            with SessionLocal() as session:
+                result = OperationalCatalogueRepository(session).get_products_policy_map(product_ids)
+                return result if isinstance(result, dict) else {}
+        except Exception:
+            return {}
 
     def decide(
         self,
@@ -63,42 +72,22 @@ class DecisionModule:
         promotion_context: bool = False,
         express_context: bool = False,
         injected_candidates: Optional[List[Dict[str, Any]]] = None,
-        use_laya: bool = True,
+        use_decision_engine: bool = True,
+        use_laya: Optional[bool] = None,
     ) -> Dict[str, Any]:
-        """
-        Execute decision workflow for a customer.
-
-        Args:
-            customer_id: Target customer ID (e.g. 'CUST_0001').
-            top_k: Number of final recommendations to return (must be > 0).
-            candidate_limit: Maximum candidates to generate.
-            reward_context: Whether reward redemption eligibility applies.
-            promotion_context: Whether promotion eligibility applies.
-            express_context: Whether 7-day express delivery applies.
-            injected_candidates: Optional list of raw candidate dictionaries for testing/audit.
-            use_laya: Whether to invoke the Laya decision layer on feasible candidates.
-
-        Returns:
-            Structured dictionary with customer_id, candidate_count, feasible_count,
-            excluded_count, recommendations, excluded_candidates, decision_method, and laya status.
-        """
-        # 1. Validation of inputs
+        """Execute the supply-constrained recommendation and decision workflow."""
         if not customer_id or not isinstance(customer_id, str):
             raise ValueError(f"Invalid customer_id: '{customer_id}'. Must be a non-empty string.")
 
         if not isinstance(top_k, int) or top_k <= 0:
             raise ValueError(f"Invalid top_k: {top_k}. Must be a positive integer.")
 
-        # Mandatory Laya guard: Laya cannot be bypassed in the primary recommendation path
-        if not use_laya:
-            raise ValueError(
-                "Laya decision layer is mandatory for recommendations and cannot be bypassed by setting use_laya=False."
-            )
+        engine_requested = use_decision_engine if use_laya is None else bool(use_laya)
 
-        # 2. Check if customer exists in database
+        # 1. Validate customer exists
         self._validate_customer_exists(customer_id)
 
-        # 3. Candidate Generation & Recommendation Scoring
+        # 2. Candidate Generation & Recommendation Scoring
         try:
             scored_candidates: List[ScoredCandidate] = self.recommender.rank_candidates(
                 customer_id=customer_id,
@@ -108,7 +97,6 @@ class DecisionModule:
         except Exception as e:
             raise RuntimeError(f"Failed to generate and score candidates for {customer_id}: {e}") from e
 
-        # Handle case where customer has no candidates
         if not scored_candidates:
             return {
                 "status": "NO_CANDIDATES",
@@ -122,21 +110,36 @@ class DecisionModule:
                 "excluded_candidates": [],
                 "all_evaluated_candidates": [],
                 "decision_method": "NONE",
-                "laya_status": "SKIPPED_NO_CANDIDATES",
-                "laya_selected_product": None,
-                "laya_revalidation": None,
-                "laya_fallback_reason": None,
+                "decision_engine_status": "SKIPPED_NO_CANDIDATES",
+                "selected_product": None,
+                "decision_weights": None,
+                "objective_scores": {},
+                "final_ranking": [],
+                "final_validation": None,
+                "fallback_used": False,
+                "fallback_reason": None,
+                "decision_explanation": "No candidate products found for customer.",
                 "message": f"No candidate products found for customer {customer_id}.",
             }
 
-        # 4. Deterministic Policy Evaluation (Authoritative Pre-Filter)
-        evaluated_candidates = []
-        feasible_candidates = []
-        excluded_candidates = []
+        # 3. Deterministic Policy Evaluation (Authoritative Pre-Filter)
+        prod_ids = [str(c.product_id) for c in scored_candidates]
+        op_map = self._load_operational_map(prod_ids)
+        injected_map = (
+            {str(item["product_id"]): item for item in injected_candidates if item.get("product_id")}
+            if injected_candidates
+            else {}
+        )
+
+        evaluated_candidates: List[Dict[str, Any]] = []
+        feasible_candidates: List[Dict[str, Any]] = []
+        excluded_candidates: List[Dict[str, Any]] = []
 
         for candidate in scored_candidates:
             cand_dict = candidate.to_dict()
-            prod_id = candidate.product_id
+            prod_id = str(candidate.product_id)
+            op_info = op_map.get(prod_id, {})
+            inj_info = injected_map.get(prod_id, {})
 
             try:
                 policy_eval = evaluate_product(
@@ -146,7 +149,6 @@ class DecisionModule:
                     express_context=express_context,
                 )
             except ValueError as ve:
-                # Missing operational catalogue record fail-safe: mark as EXCLUDE
                 policy_eval = {
                     "product_id": prod_id,
                     "decision": "EXCLUDE",
@@ -157,6 +159,16 @@ class DecisionModule:
                 raise RuntimeError(
                     f"Database or policy evaluation failure on product {prod_id}: {pe_err}"
                 ) from pe_err
+
+            def _pick(key: str, default: Any = None) -> Any:
+                if key in inj_info and inj_info[key] is not None:
+                    return inj_info[key]
+                if key in op_info and op_info[key] is not None:
+                    return op_info[key]
+                return default
+
+            margin_val = _pick("gross_margin_pct")
+            stock_val = _pick("available_stock")
 
             item_summary = {
                 "product_id": cand_dict["product_id"],
@@ -173,16 +185,27 @@ class DecisionModule:
                 "policy_decision": policy_eval["decision"],
                 "policy_reasons": policy_eval["reasons"],
                 "policy_flags": policy_eval["flags"],
+                "available_stock": float(stock_val) if stock_val is not None else None,
+                "inventory_status": _pick("inventory_status"),
+                "gross_margin_pct": float(margin_val) if margin_val is not None else None,
+                "shipping_days": _pick("shipping_days"),
+                "reorder_point": _pick("reorder_point"),
+                "data_freshness_status": _pick("data_freshness_status"),
+                "reward_eligible": _pick("reward_eligible"),
+                "promotion_eligible": _pick("promotion_eligible"),
+                "max_discount_pct": (
+                    float(_pick("max_discount_pct"))
+                    if _pick("max_discount_pct") is not None
+                    else None
+                ),
             }
 
             evaluated_candidates.append(item_summary)
-
             if policy_eval["decision"] == "PASS":
                 feasible_candidates.append(item_summary)
             else:
                 excluded_candidates.append(item_summary)
 
-        # Handle case where all candidates failed policy constraints
         if not feasible_candidates:
             return {
                 "status": "ALL_CANDIDATES_EXCLUDED",
@@ -197,145 +220,200 @@ class DecisionModule:
                 "all_evaluated_candidates": evaluated_candidates,
                 "decision_method": "NONE",
                 "laya_status": "SKIPPED_NO_FEASIBLE_CANDIDATES",
+                "decision_engine_status": "SKIPPED_NO_FEASIBLE_CANDIDATES",
                 "laya_selected_product": None,
-                "laya_revalidation": None,
-                "laya_fallback_reason": None,
+                "selected_product": None,
+                "decision_weights": None,
+                "objective_scores": {},
+                "final_ranking": [],
+                "final_validation": None,
+                "fallback_used": False,
+                "fallback_reason": None,
+                "decision_explanation": "All candidate products failed deterministic policy checks.",
             }
 
-        # 5. Mandatory Laya Decision Layer Invocation
-        # Laya compares already policy-feasible candidates to select the Next-Best-Offer.
-        laya_selected_product: Optional[Dict[str, Any]] = None
-        laya_revalidation: Optional[Dict[str, Any]] = None
-        laya_status: str = "DISABLED"
-        laya_fallback_reason: Optional[str] = None
-        decision_method: str = "DETERMINISTIC"
-
-        if use_laya:
+        # 4. Pre-compute deterministic objective metrics for full audit transparency
+        feasible_ids = {str(c["product_id"]) for c in feasible_candidates}
+        enriched_pool = list(feasible_candidates)
+        decision_weights: Optional[Dict[str, float]] = None
+        objective_scores: Dict[str, Any] = {}
+        if self.decision_engine.enabled:
             try:
-                # Laya may select ONLY from already policy-feasible candidates
-                laya_result = self.laya_adapter.choose(feasible_candidates)
-                candidate_chosen = laya_result["selected"]
+                pre_eval = self.decision_engine.choose(
+                    feasible_candidates,
+                    express_context=express_context,
+                )
+                decision_weights = pre_eval.get("weights")
+                objective_scores = pre_eval.get("objective_scores", {})
+                obj_by_id = objective_scores
+                enriched_pool = [
+                    {
+                        **cand,
+                        "objective_scores": obj_by_id.get(str(cand["product_id"]), {}),
+                        "weighted_score": (
+                            obj_by_id.get(str(cand["product_id"]), {}).get("weighted_score")
+                        ),
+                    }
+                    for cand in feasible_candidates
+                ]
+            except Exception:
+                enriched_pool = list(feasible_candidates)
 
-                # 6. Revalidation: Deterministic policy engine is strictly authoritative!
-                # Selected product must be revalidated against policy constraints.
+        # 5. Primary Laya Inference -> Final Policy Revalidation -> Deterministic Weighted Fallback
+        selected_product: Optional[Dict[str, Any]] = None
+        final_validation: Optional[Dict[str, Any]] = None
+        final_ranking: List[Dict[str, Any]] = []
+        decision_explanation: str = ""
+        fallback_used = False
+        fallback_reason: Optional[str] = None
+        laya_status = "SUCCESS"
+        decision_engine_status = "LAYA_PRIMARY"
+        decision_method = "LAYA"
+        final_recommendations: List[Dict[str, Any]] = []
+        laya_selected_product: Optional[Dict[str, Any]] = None
+
+        if not engine_requested:
+            fallback_used = True
+            laya_status = "UNAVAILABLE"
+            fallback_reason = "Laya was bypassed by request configuration; deterministic weighted fallback applied."
+        else:
+            try:
+                laya_result = self.laya_adapter.choose(
+                    enriched_pool,
+                    express_context=express_context,
+                )
+                chosen_item = laya_result["selected"]
+                chosen_id = str(chosen_item.get("product_id"))
+
+                if chosen_id not in feasible_ids:
+                    raise RuntimeError(
+                        f"Laya selected '{chosen_id}' which is not in the feasible candidate pool."
+                    )
+
                 reval = evaluate_product(
-                    product_id=candidate_chosen["product_id"],
+                    product_id=chosen_id,
                     reward_context=reward_context,
                     promotion_context=promotion_context,
                     express_context=express_context,
                 )
-                laya_revalidation = reval
-
                 if reval["decision"] != "PASS":
-                    # Infeasible selection rejected by authoritative policy engine
-                    laya_status = "REVALIDATION_FAILED"
-                    laya_fallback_reason = (
-                        f"Laya selected product {candidate_chosen['product_id']} failed "
-                        f"authoritative policy revalidation: {', '.join(reval['reasons'])}"
+                    raise RuntimeError(
+                        f"Laya-selected product {chosen_id} failed authoritative policy revalidation: "
+                        f"{', '.join(reval['reasons'])}"
                     )
-                    status = "LAYA_SELECTION_INFEASIBLE"
-                    decision_method = "POLICY_REJECTED"
 
-                    infeasible_item = {
-                        **candidate_chosen,
-                        "policy_decision": "EXCLUDE",
-                        "policy_reasons": reval["reasons"],
+                laya_selected_product = chosen_item
+                selected_product = chosen_item
+                final_validation = reval
+                remaining = [
+                    item
+                    for item in rank_feasible_candidates(enriched_pool, top_k=len(enriched_pool))
+                    if str(item["product_id"]) != chosen_id
+                ]
+                ordered = [chosen_item] + remaining
+                for rank_idx, entry in enumerate(ordered, start=1):
+                    entry["rank"] = rank_idx
+                final_recommendations = ordered[:top_k]
+                final_ranking = [
+                    {
+                        "rank": item.get("rank", idx + 1),
+                        "product_id": item["product_id"],
+                        "product_name": item["product_name"],
+                        "weighted_score": item.get("weighted_score"),
+                        "recommendation_score": item["recommendation_score"],
+                        "objective_scores": item.get("objective_scores", {}),
                     }
-                    return {
-                        "status": status,
-                        "customer_id": customer_id,
-                        "candidate_count": len(evaluated_candidates),
-                        "feasible_count": len(feasible_candidates),
-                        "excluded_count": len(excluded_candidates) + 1,
-                        "top_k_requested": top_k,
-                        "recommendations": [],
-                        "feasible_candidates": feasible_candidates,
-                        "excluded_candidates": excluded_candidates + [infeasible_item],
-                        "all_evaluated_candidates": evaluated_candidates,
-                        "decision_method": decision_method,
-                        "laya_status": laya_status,
-                        "laya_selected_product": None,
-                        "laya_revalidation": laya_revalidation,
-                        "laya_fallback_reason": laya_fallback_reason,
+                    for idx, item in enumerate(final_recommendations)
+                ]
+                decision_explanation = laya_result.get("explanation", "")
+            except Exception as laya_err:
+                fallback_used = True
+                laya_status = "FALLBACK"
+                fallback_reason = str(laya_err)
+
+        if fallback_used:
+            decision_engine_status = "FALLBACK"
+            candidate_pool_ordered: List[Dict[str, Any]] = []
+            try:
+                if self.decision_engine.enabled:
+                    decision_method = "WEIGHTED_DECISION_FALLBACK"
+                    fallback_res = self.decision_engine.choose(
+                        feasible_candidates,
+                        express_context=express_context,
+                    )
+                    decision_weights = fallback_res.get("weights")
+                    objective_scores = fallback_res.get("objective_scores", {})
+                    candidate_pool_ordered = fallback_res.get("ranked_candidates", [])
+                else:
+                    raise RuntimeError(self.decision_engine.reason or "Weighted engine disabled.")
+            except Exception:
+                decision_method = "DETERMINISTIC_FALLBACK"
+                candidate_pool_ordered = rank_feasible_candidates(
+                    enriched_pool, top_k=len(enriched_pool)
+                )
+
+            validated_fallback: List[Dict[str, Any]] = []
+            for cand in candidate_pool_ordered:
+                pid = str(cand["product_id"])
+                try:
+                    reval = evaluate_product(
+                        product_id=pid,
+                        reward_context=reward_context,
+                        promotion_context=promotion_context,
+                        express_context=express_context,
+                    )
+                except Exception as reval_err:
+                    reval = {
+                        "product_id": pid,
+                        "decision": "EXCLUDE",
+                        "reasons": [f"Policy revalidation error: {reval_err}"],
+                        "flags": [],
                     }
+                if reval["decision"] == "PASS":
+                    entry = dict(cand)
+                    entry["rank"] = len(validated_fallback) + 1
+                    validated_fallback.append(entry)
+                    if selected_product is None:
+                        selected_product = entry
+                        final_validation = reval
+                else:
+                    excluded_candidates.append(
+                        {
+                            **cand,
+                            "policy_decision": "EXCLUDE",
+                            "policy_reasons": reval["reasons"],
+                        }
+                    )
 
-                # Laya selection passed authoritative revalidation
-                laya_selected_product = candidate_chosen
-                laya_status = "SUCCESS"
-                decision_method = "LAYA"
-
-            except ValueError as ve:
-                # Malformed output from Laya
-                laya_status = "MALFORMED_OUTPUT"
-                laya_fallback_reason = f"Laya returned malformed output: {ve}"
-                status = "LAYA_FAILED"
-                decision_method = "FAILED"
-                return {
-                    "status": status,
-                    "customer_id": customer_id,
-                    "candidate_count": len(evaluated_candidates),
-                    "feasible_count": len(feasible_candidates),
-                    "excluded_count": len(excluded_candidates),
-                    "top_k_requested": top_k,
-                    "recommendations": [],
-                    "feasible_candidates": feasible_candidates,
-                    "excluded_candidates": excluded_candidates,
-                    "all_evaluated_candidates": evaluated_candidates,
-                    "decision_method": decision_method,
-                    "laya_status": laya_status,
-                    "laya_selected_product": None,
-                    "laya_revalidation": None,
-                    "laya_fallback_reason": laya_fallback_reason,
+            final_recommendations = validated_fallback[:top_k]
+            final_ranking = [
+                {
+                    "rank": item.get("rank", idx + 1),
+                    "product_id": item["product_id"],
+                    "product_name": item["product_name"],
+                    "weighted_score": item.get("weighted_score"),
+                    "recommendation_score": item["recommendation_score"],
+                    "objective_scores": item.get("objective_scores", {}),
                 }
-            except RuntimeError as re:
-                # Laya unavailable (disabled, uninstalled, or router runtime failure)
-                laya_status = "UNAVAILABLE"
-                laya_fallback_reason = str(re)
-                status = "LAYA_UNAVAILABLE"
-                decision_method = "FAILED"
-                return {
-                    "status": status,
-                    "customer_id": customer_id,
-                    "candidate_count": len(evaluated_candidates),
-                    "feasible_count": len(feasible_candidates),
-                    "excluded_count": len(excluded_candidates),
-                    "top_k_requested": top_k,
-                    "recommendations": [],
-                    "feasible_candidates": feasible_candidates,
-                    "excluded_candidates": excluded_candidates,
-                    "all_evaluated_candidates": evaluated_candidates,
-                    "decision_method": decision_method,
-                    "laya_status": laya_status,
-                    "laya_selected_product": None,
-                    "laya_revalidation": None,
-                    "laya_fallback_reason": laya_fallback_reason,
-                }
-
-        # 7. Final Recommendation Assembly
-        if laya_selected_product is not None:
-            # Place Laya-selected offer at index 0 (Next-Best-Offer)
-            remaining_feasible = [
-                c for c in feasible_candidates
-                if c["product_id"] != laya_selected_product["product_id"]
+                for idx, item in enumerate(final_recommendations)
             ]
-            remaining_feasible.sort(
-                key=lambda x: (-x["recommendation_score"], x["product_id"])
-            )
-            final_recommendations = [laya_selected_product] + remaining_feasible[: top_k - 1]
-        else:
-            # Pure deterministic ranking
-            feasible_candidates.sort(
-                key=lambda x: (-x["recommendation_score"], x["product_id"])
-            )
-            final_recommendations = feasible_candidates[:top_k]
-            decision_method = "DETERMINISTIC"
+            if selected_product is not None:
+                decision_explanation = (
+                    f"{decision_method} selected {selected_product['product_id']} "
+                    f"(recommendation_score={selected_product['recommendation_score']:.4f}) "
+                    f"because Laya was unavailable or rejected: {fallback_reason}"
+                )
+            else:
+                decision_explanation = (
+                    f"No feasible candidate passed final policy revalidation during fallback ({fallback_reason})."
+                )
 
-        # Final audit check: Ensure ABSOLUTELY ZERO excluded products reach final_recommendations
+        # Final audit invariant: ZERO excluded products may ever reach final_recommendations
         for rec in final_recommendations:
             if rec["policy_decision"] != "PASS":
                 raise RuntimeError(
                     f"CRITICAL CONSTRAINT VIOLATION: Excluded product {rec['product_id']} "
-                    f"breached into final recommendations."
+                    "breached into final recommendations."
                 )
 
         status = "SUCCESS" if final_recommendations else "ALL_CANDIDATES_EXCLUDED"
@@ -353,9 +431,16 @@ class DecisionModule:
             "all_evaluated_candidates": evaluated_candidates,
             "decision_method": decision_method,
             "laya_status": laya_status,
+            "decision_engine_status": decision_engine_status,
             "laya_selected_product": laya_selected_product,
-            "laya_revalidation": laya_revalidation,
-            "laya_fallback_reason": laya_fallback_reason,
+            "selected_product": selected_product,
+            "decision_weights": decision_weights,
+            "objective_scores": objective_scores,
+            "final_ranking": final_ranking,
+            "final_validation": final_validation,
+            "fallback_used": fallback_used,
+            "fallback_reason": fallback_reason,
+            "decision_explanation": decision_explanation,
         }
 
     def _validate_customer_exists(self, customer_id: str) -> None:
@@ -385,7 +470,7 @@ def make_decision(
     reward_context: bool = False,
     promotion_context: bool = False,
     express_context: bool = False,
-    use_laya: bool = True,
+    use_decision_engine: bool = True,
 ) -> Dict[str, Any]:
     """Convenience function to run the decision module."""
     module = DecisionModule()
@@ -395,5 +480,5 @@ def make_decision(
         reward_context=reward_context,
         promotion_context=promotion_context,
         express_context=express_context,
-        use_laya=use_laya,
+        use_decision_engine=use_decision_engine,
     )

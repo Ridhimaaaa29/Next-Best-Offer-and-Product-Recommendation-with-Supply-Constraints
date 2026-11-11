@@ -17,8 +17,19 @@ class ErrorResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str = Field(..., description="Service status (e.g. 'healthy')")
     app_version: str = Field(..., description="Application version")
+    app_env: str = Field(default="local", description="Active runtime environment ('local' or 'production')")
     database_connected: bool = Field(..., description="True if database connection is verified")
     ml_model_loaded: bool = Field(..., description="True if ML propensity model is loaded")
     ml_model_name: Optional[str] = Field(default=None, description="Name of loaded ML model artifact")
+    decision_provider: str = Field(
+        default="laya",
+        description="Active decision provider: 'laya' or 'lightweight_weighted_decision_engine'",
+    )
+    laya_available: bool = Field(default=False, description="True if Laya inference is enabled and available")
+    laya_loaded: bool = Field(default=False, description="True if Laya model weights are currently loaded in RAM")
+    decision_status_reason: Optional[str] = Field(
+        default=None,
+        description="Explanation when Laya inference is disabled/unavailable and fallback is active",
+    )
 
     model_config = ConfigDict(extra="ignore")

@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     )
     api_prefix: str = "/api/v1"
     debug: bool = False
+    app_env: str = "local"  # "local" / "aws" (Laya enabled) or "production" / "render" (lightweight fallback)
 
     # ----------------------------------------------------------------
     # Logging
@@ -64,10 +65,23 @@ class Settings(BaseSettings):
     groq_base_url: str = "https://api.groq.com/openai/v1"
 
     # ----------------------------------------------------------------
-    # Laya Decision Layer
+    # Laya Decision Layer & Deterministic Weighted Fallback
     # ----------------------------------------------------------------
     laya_enabled: bool = True
+    laya_preload_on_startup: bool = False
+    laya_model: str = "english"
+    laya_device: str = "cpu"
+    laya_cpu_bfloat16: bool = False
+    laya_max_candidates: int = 5
+    laya_threads: int = 0
+    laya_timeout_seconds: float = 45.0
     laya_cache_dir: Path | None = PROJECT_ROOT / ".laya-cache"
+
+    decision_engine_enabled: bool = True
+    decision_weight_relevance: float = 0.45
+    decision_weight_margin: float = 0.25
+    decision_weight_diversity: float = 0.15
+    decision_weight_friction: float = 0.15
 
     def __repr__(self) -> str:
         """Safe repr — never exposes DATABASE_URL or secrets."""

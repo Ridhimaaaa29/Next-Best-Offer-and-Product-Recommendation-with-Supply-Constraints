@@ -17,8 +17,10 @@ Zero infeasible products are permitted in the final recommendation set.
 | :--- | :--- | :--- | :--- |
 | `RULE_STATUS_001` | Active Status | Product must have `product_status == 'active'` | Candidate is EXCLUDED |
 | `RULE_STK_001` | Positive Stock | `available_stock` must be > 0 | Candidate is EXCLUDED |
-| `RULE_STK_002` | Known Inventory | `available_stock` cannot be `NULL` (fail-safe) | Candidate is EXCLUDED |
+| `RULE_STK_002` | Known Inventory | `available_stock` cannot be `NULL` and `inventory_status != 'unknown'` (fail-safe) | Candidate is EXCLUDED |
+| `RULE_FRESH_001` | Fresh Operational Data | `data_freshness_status` must be verified/fresh (`verified_fresh`, `fresh`) | Candidate is EXCLUDED |
 | `RULE_MAR_001` | Minimum Margin | `gross_margin_pct` must be >= 0.10 (10%) | Candidate is EXCLUDED |
+| `RULE_DSC_001` | Discount Limit | When `requested_discount_pct` is supplied, must not exceed `max_discount_pct` | Candidate is EXCLUDED |
 
 ---
 

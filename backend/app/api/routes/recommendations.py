@@ -26,14 +26,14 @@ router = APIRouter(tags=["Recommendations"])
         404: {"model": ErrorResponse, "description": "Customer not found"},
         422: {"description": "Validation error"},
         500: {"model": ErrorResponse, "description": "Internal server error"},
-        502: {"model": RecommendationResponse, "description": "Laya decision layer failed or invalid selection"},
-        503: {"model": RecommendationResponse, "description": "Laya decision layer unavailable or not loaded"},
+        503: {"model": ErrorResponse, "description": "Audit persistence failed or database unavailable"},
     },
     summary="Generate Next-Best-Offer Recommendations",
     description=(
         "Executes the full supply-constrained recommendation pipeline: "
         "Customer Context -> Candidate Generation -> ML/Heuristic Scoring -> "
-        "Policy Hard Constraints -> Feasibility Pruning -> Mandatory Laya Decision -> Structured Output."
+        "Policy Hard Constraints -> Capped Laya Decision Inference -> "
+        "Authoritative Policy Revalidation (with Weighted Fallback) -> Persisted Audit."
     ),
 )
 def generate_recommendations(
@@ -73,18 +73,17 @@ def generate_recommendations(
             detail=f"Recommendation pipeline failed: {str(e)}",
         )
 
-    # Format result to match RecommendationResponse
-    audit_id = AuditService(db).log_decision_audit(raw_result)
+    try:
+        audit_id = AuditService(db).log_decision_audit(raw_result)
+    except Exception as audit_err:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Recommendation generated but audit persistence failed: {audit_err}",
+        ) from audit_err
+
     excluded = raw_result.get("excluded_candidates") if req.include_excluded else None
 
-    # Map decision failures to non-success HTTP status codes while preserving structured contract
-    res_status = raw_result.get("status")
-    if res_status == "LAYA_UNAVAILABLE":
-        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-    elif res_status in ("LAYA_FAILED", "LAYA_SELECTION_INFEASIBLE"):
-        response.status_code = status.HTTP_502_BAD_GATEWAY
-
-    # Map candidate dicts to score breakdown schema
+    # Map candidate dicts to response schema
     formatted_recs = []
     for rec in raw_result.get("recommendations", []):
         formatted_recs.append(
@@ -102,17 +101,29 @@ def generate_recommendations(
                 "policy_decision": rec["policy_decision"],
                 "policy_reasons": rec.get("policy_reasons", []),
                 "score_breakdown": rec.get("score_explanation") or rec.get("explanation"),
+                "objective_scores": rec.get("objective_scores"),
+                "weighted_score": rec.get("weighted_score"),
+                "rank": rec.get("rank"),
             }
         )
 
     return RecommendationResponse(
         status=raw_result["status"],
         customer_id=raw_result["customer_id"],
+        decision_id=audit_id,
         candidate_count=raw_result["candidate_count"],
         feasible_count=raw_result["feasible_count"],
         excluded_count=raw_result["excluded_count"],
-        decision_method=raw_result.get("decision_method", "DETERMINISTIC"),
+        decision_method=raw_result.get("decision_method", "LAYA"),
         laya_status=raw_result.get("laya_status"),
+        decision_engine_status=raw_result.get("decision_engine_status"),
+        decision_weights=raw_result.get("decision_weights"),
+        objective_scores=raw_result.get("objective_scores", {}),
+        final_ranking=raw_result.get("final_ranking", []),
+        final_validation=raw_result.get("final_validation"),
+        decision_explanation=raw_result.get("decision_explanation"),
+        fallback_used=bool(raw_result.get("fallback_used", False)),
+        fallback_reason=raw_result.get("fallback_reason"),
         recommendations=formatted_recs,
         excluded_candidates=excluded,
     )

@@ -45,11 +45,12 @@ def test_fetch_recommendations_success_preserves_backend_payload():
     backend_payload = {
         "status": "SUCCESS",
         "customer_id": "CUST_0001",
+        "decision_id": "dec_123",
         "candidate_count": 5,
         "feasible_count": 3,
         "excluded_count": 2,
-        "decision_method": "LAYA",
-        "laya_status": "SUCCESS",
+        "decision_method": "WEIGHTED_DECISION",
+        "decision_engine_status": "SUCCESS",
         "recommendations": [
             {
                 "product_id": "PROD_0001",
@@ -70,22 +71,23 @@ def test_fetch_recommendations_success_preserves_backend_payload():
         result = fetch_recommendations("CUST_0001", top_k=5, reward_context=True)
 
     mock_post.assert_called_once()
+    assert mock_post.call_args.kwargs["timeout"] >= 60
     assert result == backend_payload
     assert result["status"] == "SUCCESS"
-    assert result["decision_method"] == "LAYA"
+    assert result["decision_method"] == "WEIGHTED_DECISION"
     assert len(result["recommendations"]) == 1
 
 
 @pytest.mark.parametrize(
-    "status_code,laya_status,rec_status,expected_text",
+    "status_code,engine_status,rec_status,expected_text",
     [
-        (502, "MALFORMED_OUTPUT", "LAYA_FAILED", "502"),
-        (503, "UNAVAILABLE", "LAYA_UNAVAILABLE", "503"),
+        (502, "FAILED", "FAILED_SAFE", "502"),
+        (503, "UNAVAILABLE", "ERROR", "503"),
     ],
 )
 def test_fetch_recommendations_502_and_503_do_not_fallback(
     status_code: int,
-    laya_status: str,
+    engine_status: str,
     rec_status: str,
     expected_text: str,
 ):
@@ -94,8 +96,8 @@ def test_fetch_recommendations_502_and_503_do_not_fallback(
     mock_res.status_code = status_code
     mock_res.json.return_value = {
         "status": rec_status,
-        "laya_status": laya_status,
-        "detail": "Laya decision execution failed",
+        "decision_engine_status": engine_status,
+        "detail": "Decision evaluation failed",
     }
 
     with (
@@ -108,10 +110,9 @@ def test_fetch_recommendations_502_and_503_do_not_fallback(
     assert result["status"] != "SUCCESS"
     assert result["recommendations"] == []
     assert result["excluded_candidates"] == []
-    assert result["error_type"] == "laya_or_workflow_failure"
+    assert result["error_type"] == "decision_or_workflow_failure"
     assert result["http_status"] == status_code
     assert expected_text in result["error"]
-    assert "Laya" in result["error"]
 
 
 def test_fetch_recommendations_connection_error_does_not_fallback():

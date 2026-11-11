@@ -1,4 +1,4 @@
-"""Typed inputs and outputs for the local MCP demonstration."""
+"""Typed inputs and outputs for the MCP multi-agent decision workflow."""
 
 from __future__ import annotations
 
@@ -119,6 +119,9 @@ class InventoryDetails(BaseModel):
     shipping_days: int | None
     reward_eligible: bool | None
     promotion_eligible: bool | None
+    reorder_point: int | None = None
+    max_discount_pct: float | None = None
+    data_freshness_status: str | None = None
     verification_status: Literal["verified", "missing", "failed"]
     error: str | None = None
 
@@ -137,10 +140,27 @@ class PolicyOutput(BaseModel):
     flags: list[str]
 
 
+class DecisionCandidateInput(BaseModel):
+    product_id: str = Field(min_length=1, max_length=50)
+    product_name: str
+    recommendation_score: float
+    category: str | None = None
+    subcategory: str | None = None
+    brand: str | None = None
+    gross_margin_pct: float | None = None
+    available_stock: float | None = None
+    inventory_status: str | None = None
+    shipping_days: int | None = None
+    reorder_point: int | None = None
+
+
 class FinalizeCandidate(BaseModel):
     product_id: str = Field(min_length=1, max_length=50)
     product_name: str
     recommendation_score: float
+    objective_scores: dict[str, Any] | None = None
+    weighted_score: float | None = None
+    rank: int | None = None
 
 
 class FinalizeInput(BaseModel):
@@ -150,14 +170,24 @@ class FinalizeInput(BaseModel):
     express_context: bool = False
 
 
-class LayaInput(BaseModel):
-    candidates: list["FinalizeCandidate"] = Field(min_length=1, max_length=50)
+class DecisionEngineInput(BaseModel):
+    candidates: list[DecisionCandidateInput] = Field(min_length=1, max_length=50)
+    express_context: bool = False
 
 
-class LayaOutput(BaseModel):
-    status: Literal["LAYA", "FALLBACK"]
+class DecisionEngineOutput(BaseModel):
+    status: Literal["LAYA", "FALLBACK", "WEIGHTED_DECISION"]
     selected_product_id: str
     explanation: str
+    confidence: float | None = None
+    weights: dict[str, float] = Field(default_factory=dict)
+    objective_scores: dict[str, dict[str, Any]] = Field(default_factory=dict)
+    ranked_candidates: list[dict[str, Any]] = Field(default_factory=list)
+    fallback_reason: str | None = None
+
+
+LayaInput = DecisionEngineInput
+LayaOutput = DecisionEngineOutput
 
 
 class ValidateFinalInput(PolicyInput):
@@ -182,6 +212,9 @@ class FinalRecommendation(BaseModel):
     product_name: str
     recommendation_score: float
     policy_decision: Literal["PASS"]
+    objective_scores: dict[str, Any] | None = None
+    weighted_score: float | None = None
+    rank: int | None = None
 
 
 class FinalExclusion(BaseModel):

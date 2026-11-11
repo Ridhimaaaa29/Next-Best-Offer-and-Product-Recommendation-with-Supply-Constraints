@@ -21,7 +21,8 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000/api/v1").rstrip("/")
-TIMEOUT = 10
+TIMEOUT = int(os.getenv("API_TIMEOUT_SECONDS", "15"))
+RECOMMEND_TIMEOUT = int(os.getenv("RECOMMEND_TIMEOUT_SECONDS", "90"))
 
 # Streamlit Page Configuration
 st.set_page_config(
@@ -224,12 +225,58 @@ st.markdown(
 @st.cache_data(ttl=60)
 def check_api_health() -> Optional[Dict[str, Any]]:
     try:
-        res = requests.get(f"{API_BASE_URL}/health", timeout=2)
+        res = requests.get(f"{API_BASE_URL}/health", timeout=5)
         if res.ok:
             return res.json()
     except Exception:
         pass
     return None
+
+
+@st.cache_data(ttl=60)
+def check_decision_engine_status() -> Optional[Dict[str, Any]]:
+    """Query live lightweight weighted decision engine readiness and weights."""
+    try:
+        res = requests.get(f"{API_BASE_URL}/decisions/status", timeout=5)
+        if res.ok and isinstance(res.json(), dict):
+            return res.json()
+    except Exception:
+        pass
+    return None
+
+
+def submit_manual_audit(audit_payload: Dict[str, Any]) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """Persist an operator-initiated governance audit entry via POST /decisions/history."""
+    try:
+        res = requests.post(f"{API_BASE_URL}/decisions/history", json=audit_payload, timeout=15)
+        try:
+            data = res.json()
+        except Exception:
+            data = None
+        if res.ok and isinstance(data, dict) and data.get("decision_id"):
+            return data, None
+        detail = _extract_backend_error_detail(res) if not isinstance(data, dict) else (data.get("detail") or "")
+        return None, detail or f"Audit persistence failed with HTTP {res.status_code}."
+    except requests.exceptions.Timeout:
+        return None, "Audit persistence request timed out."
+    except requests.exceptions.ConnectionError:
+        return None, "Backend API is unreachable; decision audit was not persisted."
+    except Exception as exc:
+        return None, f"Unexpected audit error: {type(exc).__name__}"
+
+
+def fetch_decision_history(customer_id: Optional[str] = None, limit: int = 10) -> Tuple[List[Dict[str, Any]], Optional[str]]:
+    """Retrieve persisted DecisionAudit records from GET /decisions/history."""
+    params: Dict[str, Any] = {"limit": limit}
+    if customer_id:
+        params["customer_id"] = customer_id
+    try:
+        res = requests.get(f"{API_BASE_URL}/decisions/history", params=params, timeout=10)
+        if res.ok and isinstance(res.json(), list):
+            return res.json(), None
+        return [], f"Unable to load audit history (HTTP {res.status_code})."
+    except Exception as exc:
+        return [], f"Unable to reach audit history endpoint: {type(exc).__name__}"
 
 
 @st.cache_data(ttl=120)
@@ -325,10 +372,10 @@ def load_evaluation_report() -> Dict[str, Any]:
     return {
         "recommendation_metrics": rows,
         "ml_classification_metrics": {
-            "model": "HistGradientBoostingClassifier",
-            "holdout_roc_auc": "0.8412",
-            "holdout_pr_auc": "0.8245",
-            "cv_pr_auc": "0.8190",
+            "model": "Gradient Boosting",
+            "holdout_roc_auc": "0.8583",
+            "holdout_pr_auc": "0.7094",
+            "cv_pr_auc": "0.7467",
         },
     }
 
@@ -380,7 +427,7 @@ def _recommendation_error_result(
         "feasible_count": 0,
         "excluded_count": 0,
         "decision_method": None,
-        "laya_status": None,
+        "decision_engine_status": None,
         "recommendations": [],
         "excluded_candidates": [],
         "error": message,
@@ -404,9 +451,9 @@ def _extract_backend_error_detail(res: requests.Response) -> str:
         rec_status = data.get("status")
         if isinstance(rec_status, str) and rec_status.strip():
             parts.append(f"status={rec_status.strip()}")
-        laya_status = data.get("laya_status")
-        if isinstance(laya_status, str) and laya_status.strip():
-            parts.append(f"laya_status={laya_status.strip()}")
+        engine_status = data.get("decision_engine_status")
+        if isinstance(engine_status, str) and engine_status.strip():
+            parts.append(f"decision_engine_status={engine_status.strip()}")
         if parts:
             return "; ".join(parts)
     return ""
@@ -442,7 +489,7 @@ def fetch_recommendations(
                 "express_context": express_context,
                 "include_excluded": True,
             },
-            timeout=TIMEOUT,
+            timeout=RECOMMEND_TIMEOUT,
         )
     except requests.exceptions.Timeout:
         return _recommendation_error_result(
@@ -501,20 +548,20 @@ def fetch_recommendations(
     if res.status_code == 503:
         return _recommendation_error_result(
             customer_id=customer_id,
-            error_type="laya_or_workflow_failure",
+            error_type="decision_or_workflow_failure",
             http_status=503,
             message=(
-                "Laya decision layer or workflow service is unavailable (HTTP 503)"
-                f"{detail_text}. Live ML/Laya recommendations cannot be served."
+                "Recommendation decision service or audit store is unavailable (HTTP 503)"
+                f"{detail_text}. Live ML recommendations cannot be served."
             ),
         )
     if res.status_code == 502:
         return _recommendation_error_result(
             customer_id=customer_id,
-            error_type="laya_or_workflow_failure",
+            error_type="decision_or_workflow_failure",
             http_status=502,
             message=(
-                "Laya decision evaluation or workflow execution failed (HTTP 502)"
+                "Decision evaluation or workflow execution failed (HTTP 502)"
                 f"{detail_text}. No fallback recommendations are permitted."
             ),
         )
@@ -987,14 +1034,79 @@ def render_next_best_offer_centre() -> None:
             c_b4.metric("Fulfilment SLA", "2-3 Days")
 
             with st.container(border=True):
-                st.markdown(f"**Strategic Business Justification:** {top_offer.get('explanation', 'Strong historical propensity, high gross margin contribution, and confirmed warehouse availability.')}")
+                justification = (
+                    rec_result.get("decision_explanation")
+                    or top_offer.get("explanation")
+                    or "Strong historical propensity, high gross margin contribution, and confirmed warehouse availability."
+                )
+                st.markdown(f"**Strategic Business Justification:** {justification}")
+
+        if rec_result.get("fallback_used"):
+            st.warning(
+                f"⚠️ **WeightedDecisionEngine Fallback Active (Laya Not Used)**: "
+                f"{rec_result.get('fallback_reason') or 'Laya unavailable in this environment; weighted multi-objective fallback selected the offer.'}"
+            )
 
         col_b1, col_b2 = st.columns(2)
-        if col_b1.button("🚀 Dispatch Offer to Customer App / Email", type="primary", use_container_width=True):
-            st.balloons()
-            st.success(f"Next-Best-Offer for {top_offer.get('product_name')} dispatched successfully to Customer {selected_customer}!")
+        if col_b1.button("📤 Dispatch Offer to Customer Channel", type="primary", use_container_width=True):
+            st.warning(
+                f"Live customer delivery unavailable for `{top_offer.get('product_id')}`: "
+                "no external email, SMS, or push notification provider is integrated in this deployment. "
+                "Use **Log Offer into Governance Audit Trail** to persist an approved record in PostgreSQL."
+            )
         if col_b2.button("📋 Log Offer into Governance Audit Trail", use_container_width=True):
-            st.info(f"Offer {top_offer.get('product_id')} logged into audit repository with policy compliance score 100%.")
+            audit_payload = {
+                "customer_id": selected_customer,
+                "status": rec_result.get("status", "SUCCESS"),
+                "selected_product_id": top_offer.get("product_id"),
+                "ranking_method": "MANUAL_GOVERNANCE_AUDIT",
+                "approval_status": "APPROVED",
+                "candidate_products": recs + (rec_result.get("excluded_candidates") or []),
+                "recommendations": recs,
+                "excluded_candidates": rec_result.get("excluded_candidates") or [],
+                "decision_weights": rec_result.get("decision_weights"),
+                "objective_scores": rec_result.get("objective_scores") or {},
+                "final_validation": rec_result.get("final_validation") or {"decision": "PASS"},
+                "decision_explanation": rec_result.get("decision_explanation")
+                or f"Operator approved offer {top_offer.get('product_id')} for {selected_customer}.",
+                "fallback_used": bool(rec_result.get("fallback_used", False)),
+                "fallback_reason": rec_result.get("fallback_reason"),
+            }
+            saved_record, audit_err = submit_manual_audit(audit_payload)
+            if saved_record:
+                st.success(
+                    f"Offer `{top_offer.get('product_id')}` persisted to PostgreSQL governance audit trail "
+                    f"(Decision ID: `{saved_record.get('decision_id')}`)."
+                )
+            else:
+                st.error(f"Governance audit persistence failed: {audit_err}")
+
+        if rec_result.get("decision_id"):
+            st.caption(
+                f"Automatic recommendation trace persisted in PostgreSQL (`decision_id={rec_result.get('decision_id')}`, "
+                f"method=`{rec_result.get('decision_method', 'LAYA')}`)."
+            )
+
+        with st.expander("🗄️ Recent Persisted Governance Audit Records (PostgreSQL)", expanded=False):
+            history_rows, history_err = fetch_decision_history(customer_id=selected_customer, limit=5)
+            if history_err:
+                st.warning(history_err)
+            elif not history_rows:
+                st.info(f"No persisted audit records found yet for Customer `{selected_customer}`.")
+            else:
+                history_table = [
+                    {
+                        "Decision ID": row.get("decision_id"),
+                        "Selected SKU": row.get("selected_product_id"),
+                        "Method": row.get("ranking_method"),
+                        "Status": row.get("status"),
+                        "Approval": row.get("approval_status"),
+                        "Fallback": "Yes" if row.get("fallback_used") else "No",
+                        "Timestamp": row.get("created_at"),
+                    }
+                    for row in history_rows
+                ]
+                st.dataframe(pd.DataFrame(history_table), use_container_width=True, hide_index=True)
 
         if len(recs) > 1:
             st.markdown('<div class="section-header">🥈 Secondary & Cross-Sell Alternative Offers</div>', unsafe_allow_html=True)
@@ -1011,8 +1123,8 @@ def render_next_best_offer_centre() -> None:
 def render_mcp_agentic_workflow() -> None:
     render_hero(
         "Agentic Multi-Agent Recommendation Workflow",
-        "Deterministic, multi-agent recommendation pipeline coordinated through Model Context Protocol (MCP) tools: "
-        "Customer Profiling → Recommendation Scoring → Live Inventory Verification → Hard Policy Governance → Mandatory Laya Optimization.",
+        "Deterministic, 6-stage recommendation pipeline coordinated through Model Context Protocol (MCP) tools: "
+        "Customer Profiling → ML Propensity Scoring → Live Inventory Verification → Hard Policy Governance → Laya Decision Engine (with Weighted Fallback) → Final Revalidation.",
         tag="Agentic MCP Architecture",
     )
 
@@ -1074,8 +1186,8 @@ def render_mcp_agentic_workflow() -> None:
                 st.markdown("**3. 📦 Inventory Agent**  \nValidates warehouse stock levels, inventory status, and profit margin floor.")
                 st.markdown("**4. 🛡️ Policy Agent**  \nApplies authoritative business governance and strictly prunes infeasible SKUs.")
             with c3:
-                st.markdown("**5. ⚡ Laya Agent**  \nApplies mandatory decision optimization across policy-feasible candidates.")
-                st.markdown("**6. 🎯 Decision Agent**  \nRevalidates selection against policy and constructs the final actionable offer.")
+                st.markdown("**5. ⚡ Decision Agent**  \nRuns Laya inference (`convaiinnovations/laya`) on a capped policy-feasible shortlist, with deterministic weighted fallback.")
+                st.markdown("**6. 🎯 Final Decision Agent**  \nRevalidates selected candidates against authoritative policy and verified inventory freshness before persistence.")
         return
 
     data = st.session_state.get("mcp_last_result")
@@ -1091,8 +1203,16 @@ def render_mcp_agentic_workflow() -> None:
     agents = data.get("agents", [])
     recommendations = data.get("recommendations", [])
     excluded = data.get("excluded_candidates", [])
-    laya_selected_id = data.get("laya_selected_product_id")
-    laya_status = data.get("laya_status")
+    selected_id = data.get("selected_product_id") or data.get("laya_selected_product_id")
+    decision_method = data.get("decision_method") or data.get("laya_status") or "WEIGHTED_DECISION"
+    decision_weights = data.get("decision_weights") or {}
+    objective_scores = data.get("objective_scores") or {}
+    final_ranking = data.get("final_ranking") or []
+    final_validation = data.get("final_validation") or {}
+    decision_explanation = data.get("decision_explanation")
+    decision_id = data.get("decision_id")
+    fallback_used = bool(data.get("fallback_used", False))
+    fallback_reason = data.get("fallback_reason")
     top_error = data.get("error")
 
     # 1. Agent Execution Timeline (only rendered because we now have verified API execution evidence)
@@ -1104,8 +1224,8 @@ def render_mcp_agentic_workflow() -> None:
         "Recommendation Agent": "🧠",
         "Inventory Agent": "📦",
         "Policy Agent": "🛡️",
-        "Laya Agent": "⚡",
-        "Decision Agent": "🎯",
+        "Decision Agent": "⚖️",
+        "Final Decision Agent": "🎯",
     }
 
     for idx, agent_exec in enumerate(agents, 1):
@@ -1117,16 +1237,12 @@ def render_mcp_agentic_workflow() -> None:
 
         if ag_status == "completed":
             badge_html = f"<span class='badge badge-success'>✓ Completed · {ag_ms:.1f}ms</span>"
+        elif ag_status == "completed_with_fallback":
+            badge_html = f"<span class='badge badge-warning'>⚠ Baseline Fallback · {ag_ms:.1f}ms</span>"
         elif ag_status == "completed_with_errors":
             badge_html = f"<span class='badge badge-warning'>⚠ Completed with Notices · {ag_ms:.1f}ms</span>"
-        elif ag_status == "skipped_no_feasible":
-            badge_html = f"<span class='badge badge-slate'>○ Skipped (No Feasible Items) · {ag_ms:.1f}ms</span>"
-        elif ag_status == "failed_laya_unavailable":
-            badge_html = f"<span class='badge badge-danger'>✕ Laya Unavailable · {ag_ms:.1f}ms</span>"
-        elif ag_status == "failed_invalid_selection":
-            badge_html = f"<span class='badge badge-danger'>✕ Invalid Selection · {ag_ms:.1f}ms</span>"
-        elif ag_status == "laya_selection_infeasible":
-            badge_html = f"<span class='badge badge-danger'>✕ Selection Infeasible · {ag_ms:.1f}ms</span>"
+        elif ag_status in ("skipped_no_feasible", "completed_none_feasible"):
+            badge_html = f"<span class='badge badge-slate'>○ No Feasible Items · {ag_ms:.1f}ms</span>"
         else:
             badge_html = f"<span class='badge badge-danger'>✕ Failed Safe · {ag_ms:.1f}ms</span>"
 
@@ -1141,101 +1257,133 @@ def render_mcp_agentic_workflow() -> None:
             ag_output = agent_exec.get("output")
             if isinstance(ag_output, dict):
                 if "verified" in ag_output:
-                    st.markdown(f"Verified stock, warehouse status, and margins for **{ag_output.get('verified', 0)}** operational SKUs.")
+                    st.markdown(f"Verified operational stock, margin, freshness, and fulfilment data for **{ag_output.get('verified', 0)}** SKUs.")
                 elif "pass" in ag_output:
                     st.markdown(f"Deterministic policy results: **{ag_output.get('pass', 0)} passed**, **{ag_output.get('excluded', 0)} excluded**.")
                 elif "selected_product_id" in ag_output:
-                    st.markdown(f"Optimal decision candidate: **`{ag_output.get('selected_product_id')}`**.")
+                    st.markdown(f"Decision Engine candidate selected: **`{ag_output.get('selected_product_id')}`**.")
+                elif "recommendations" in ag_output and isinstance(ag_output.get("recommendations"), list):
+                    st.markdown(
+                        f"Final authoritative policy revalidation passed **{len(ag_output.get('recommendations', []))}** candidate(s); "
+                        f"excluded **{len(ag_output.get('excluded_candidates', []))}**."
+                    )
                 elif "candidate_count" in ag_output:
                     st.markdown(f"Generated and scored **{ag_output.get('candidate_count', 0)}** tailored candidates.")
 
             if agent_exec.get("error"):
                 st.warning(f"Stage notice: {agent_exec.get('error')}")
 
-    # 2. Laya Governance Alerts & Safety Interventions
+    # 2. Fallback / Safety Intervention Notices
+    if fallback_used:
+        st.warning(
+            f"⚠️ **Weighted Deterministic Fallback Active**: "
+            f"{fallback_reason or 'Laya was unavailable or rejected; deterministic weighted multi-objective fallback selected the final candidate.'}"
+        )
+
     if status == "FAILED_SAFE" or status_code in (502, 503):
         st.markdown('<div class="section-header">⚠️ Governance & Safety Interventions</div>', unsafe_allow_html=True)
         with st.container(border=True):
-            if status_code == 503 or (top_error and "unavailable" in top_error.lower()):
-                st.markdown(
-                    "<span class='badge badge-warning'>● LAYA DECISION LAYER UNAVAILABLE</span>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown("### Laya Optimization Layer is Unavailable")
-                st.markdown(
-                    "The Laya decision layer is currently disabled or unreachable. "
-                    "In accordance with architectural governance rules, **unverified fallback ranking is forbidden** "
-                    "and will not silently replace Laya decisions."
-                )
-            elif status_code == 502 or (top_error and ("revalidation" in top_error.lower() or "infeasible" in top_error.lower())):
-                st.markdown(
-                    "<span class='badge badge-danger'>● SELECTION REJECTED BY POLICY REVALIDATION</span>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown("### Proposed Selection Failed Authoritative Policy")
-                st.markdown(
-                    "The candidate selected by Laya did not pass final authoritative policy revalidation or warehouse stock safety checks. "
-                    "The recommendation was safely quarantined to protect fulfillment integrity."
-                )
-            else:
-                st.markdown(
-                    "<span class='badge badge-danger'>● WORKFLOW HALTED SAFELY</span>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown("### Workflow Halted Safely")
-                st.markdown("The multi-agent workflow encountered an operational exception and exited safely without returning unverified recommendations.")
-
+            st.markdown(
+                "<span class='badge badge-danger'>● WORKFLOW HALTED SAFELY</span>",
+                unsafe_allow_html=True,
+            )
+            st.markdown("### Workflow Halted Safely")
+            st.markdown("The multi-agent workflow encountered an operational exception and exited safely without returning unverified recommendations.")
             if top_error:
                 st.info(f"System status message: {top_error}")
 
     catalogue_map = {item.get("product_id"): item for item in load_catalogue()}
 
-    # 3. Laya Selected Offer (Prime Hero Card)
-    if laya_selected_id and laya_status == "LAYA" and recommendations:
-        st.markdown('<div class="section-header">⭐ Mandatory Laya Next-Best-Offer Selection</div>', unsafe_allow_html=True)
-        laya_rec = next((r for r in recommendations if r.get("product_id") == laya_selected_id), recommendations[0])
-        cat_info = catalogue_map.get(laya_selected_id, {})
+    # 3. Selected Offer & Final Validation Card
+    if selected_id and recommendations:
+        st.markdown('<div class="section-header">⚡ Laya Decision Selection & Policy Revalidation</div>', unsafe_allow_html=True)
+        chosen_rec = next((r for r in recommendations if r.get("product_id") == selected_id), recommendations[0])
+        cat_info = catalogue_map.get(selected_id, {})
 
-        l_name = cat_info.get("product_name") or laya_rec.get("product_name", "Featured Product")
+        l_name = cat_info.get("product_name") or chosen_rec.get("product_name", "Featured Product")
         l_price = float(cat_info.get("unit_price") or 0.0)
         l_rating = float(cat_info.get("product_rating") or 4.5)
         l_brand = cat_info.get("brand") or "Global"
         l_cat = cat_info.get("category") or "General"
-        l_score = float(laya_rec.get("recommendation_score") or 0.0)
+        l_score = float(chosen_rec.get("recommendation_score") or 0.0)
+        l_weighted = chosen_rec.get("weighted_score")
         l_stock = cat_info.get("available_stock")
         l_margin = float(cat_info.get("gross_margin_pct") or 0.0)
+
+        badge_label = "★ Selected by Laya Decision Engine" if not fallback_used else "★ Selected by Weighted Deterministic Fallback"
+        reval_status = final_validation.get("decision", "PASS") if isinstance(final_validation, dict) else "PASS"
 
         with st.container(border=True):
             col_l1, col_l2 = st.columns([3, 1])
             with col_l1:
                 st.markdown(
-                    f"<span class='badge badge-purple'>★ Laya Chosen Next-Best-Offer</span> "
+                    f"<span class='badge badge-purple'>{badge_label}</span> "
                     f"<span class='badge badge-primary'>{l_cat}</span> "
                     f"<span class='badge badge-slate'>{l_brand}</span> "
-                    f"<span class='badge badge-slate'>SKU: {laya_selected_id}</span>",
+                    f"<span class='badge badge-slate'>SKU: {selected_id}</span>",
                     unsafe_allow_html=True,
                 )
                 st.markdown(f"## {l_name}")
                 stars = "★" * int(round(l_rating)) + "☆" * (5 - int(round(l_rating)))
-                st.caption(f"Rating: {stars} **{l_rating:.1f}/5** · Brand: **{l_brand}** · Policy Decision: **PASS (Verified)**")
+                st.caption(
+                    f"Rating: {stars} **{l_rating:.1f}/5** · Brand: **{l_brand}** · "
+                    f"Method: **{decision_method}** · Final Policy Validation: **{reval_status}**"
+                )
             with col_l2:
                 if l_price > 0:
                     st.metric("Unit Price", f"${l_price:,.2f}")
-                st.metric("Propensity Score", f"{l_score * 100:.1f}%")
+                if l_weighted is not None:
+                    st.metric("Weighted Score", f"{float(l_weighted):.4f}")
+                else:
+                    st.metric("Propensity Score", f"{l_score * 100:.1f}%")
 
             st.divider()
             st.markdown(
-                "**🎯 Optimization Justification:** Evaluated and selected by Laya Decision Layer from policy-feasible candidates, "
-                "then successfully revalidated against operational stock availability, inventory status, and gross margin floors."
+                f"**🎯 Decision Justification:** "
+                f"{decision_explanation or 'Selected from policy-feasible candidates and revalidated against warehouse stock, freshness, and margin policy.'}"
             )
             margin_str = f"{l_margin*100:.1f}%" if l_margin > 0 else "Verified ≥ 10.0%"
             stock_str = f"{int(l_stock)} units" if l_stock is not None else "Verified In Stock"
             st.markdown(
                 f"<span class='badge badge-success'>✓ Warehouse Stock: {stock_str}</span> "
                 f"<span class='badge badge-success'>✓ Gross Margin: {margin_str}</span> "
-                f"<span class='badge badge-success'>✓ Fulfilment Feasibility: Guaranteed</span>",
+                f"<span class='badge badge-success'>✓ Final Revalidation: {reval_status}</span>",
                 unsafe_allow_html=True,
             )
+
+    # 3b. Multi-Objective Candidate Comparison Table
+    if final_ranking or (recommendations and objective_scores):
+        st.markdown('<div class="section-header">📐 Multi-Objective Candidate Comparison</div>', unsafe_allow_html=True)
+        if decision_weights:
+            w_parts = [f"`{k}={float(v):.2f}`" for k, v in decision_weights.items()]
+            st.caption("Configured normalized objective weights (`S = w_r·R + w_m·M + w_d·D − w_f·F`): " + " · ".join(w_parts))
+
+        comparison_rows = []
+        source_rows = final_ranking if final_ranking else recommendations
+        for idx, item in enumerate(source_rows, 1):
+            pid = item.get("product_id")
+            obj = item.get("objective_scores") or objective_scores.get(str(pid), {}) or {}
+            comparison_rows.append(
+                {
+                    "Rank": item.get("rank", idx),
+                    "SKU": pid,
+                    "Product": item.get("product_name"),
+                    "Relevance (R)": obj.get("recommendation_relevance", item.get("recommendation_score")),
+                    "Margin (M)": obj.get("margin_contribution"),
+                    "Diversity (D)": obj.get("product_diversity"),
+                    "Friction (F)": obj.get("operational_friction"),
+                    "Suitability": obj.get("operational_suitability"),
+                    "Weighted Score": item.get("weighted_score"),
+                }
+            )
+        if comparison_rows:
+            st.dataframe(pd.DataFrame(comparison_rows), use_container_width=True, hide_index=True)
+
+    # 3c. Persisted PostgreSQL Audit Record Confirmation
+    if decision_id:
+        st.success(f"🗄️ Workflow decision trace persisted in PostgreSQL (`decision_id={decision_id}`).")
+    elif status in ("SUCCESS", "ALL_CANDIDATES_EXCLUDED"):
+        st.info("ℹ️ Workflow response did not include a persisted `decision_id`.")
 
     # 4. Actionable Governed Recommendations
     if recommendations:
@@ -1423,9 +1571,9 @@ def render_analytics_insights() -> None:
         rec_metrics = report.get("recommendation_metrics", [])
 
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("ML Classifier", ml_metrics.get("model", "HGBoost"))
-        c2.metric("Holdout ROC-AUC", ml_metrics.get("holdout_roc_auc", "0.8412"))
-        c3.metric("Holdout PR-AUC", ml_metrics.get("holdout_pr_auc", "0.8245"))
+        c1.metric("ML Classifier", ml_metrics.get("model", "Gradient Boosting"))
+        c2.metric("Holdout ROC-AUC", ml_metrics.get("holdout_roc_auc", "0.8583"))
+        c3.metric("Holdout PR-AUC", ml_metrics.get("holdout_pr_auc", "0.7094"))
         c4.metric("Policy Compliance", "100%")
 
         if rec_metrics:
@@ -1627,6 +1775,12 @@ def render_ai_assistant() -> None:
     recs = rec_data.get("recommendations", []) if not rec_error else []
     exclusions = rec_data.get("excluded_candidates", []) if not rec_error else []
 
+    engine_telemetry = check_decision_engine_status() or {}
+    active_provider = (
+        f"Laya ({engine_telemetry.get('model', 'english')}, lazy singleton, capped shortlist)"
+        if engine_telemetry.get("laya_available")
+        else f"WeightedDecisionEngine Fallback (Laya unavailable: {engine_telemetry.get('reason') or 'disabled'})"
+    )
     context_summary = {
         "active_customer": {
             "customer_id": active_customer,
@@ -1665,10 +1819,12 @@ def render_ai_assistant() -> None:
         },
         "governance_engine": {
             "policy_compliance": "100%",
-            "laya_decision_layer": "Active (Deterministic Revalidation)",
-            "ml_model": "HistGradientBoostingClassifier (ROC-AUC 0.8412)",
+            "app_env": engine_telemetry.get("app_env", "unknown"),
+            "decision_engine": active_provider,
+            "laya_available": bool(engine_telemetry.get("laya_available", False)),
+            "ml_model": "Gradient Boosting (Holdout ROC-AUC 0.8583)",
             "margin_floor": "10% minimum gross margin",
-            "stock_rule": "Out of stock (stock <= 0) and unknown inventory strictly quarantined",
+            "stock_rule": "Out of stock (stock <= 0), stale, and unknown inventory strictly quarantined",
         },
     }
 
@@ -1790,7 +1946,7 @@ def render_overview() -> None:
     c1.metric("Customers Tracked", len(customers), help="Verified active accounts")
     c2.metric("Catalogue SKUs", len(catalogue), help="Tracked operational products")
     c3.metric("Policy Compliance", "100%", help="Hard constraint compliance in tests")
-    c4.metric("Holdout ROC-AUC", report.get("ml_classification_metrics", {}).get("holdout_roc_auc", "0.8412"))
+    c4.metric("Holdout ROC-AUC", report.get("ml_classification_metrics", {}).get("holdout_roc_auc", "0.8583"))
 
     st.markdown('<div class="section-header">💡 Core Architectural Principles</div>', unsafe_allow_html=True)
     p1, p2, p3 = st.columns(3)
@@ -1885,14 +2041,43 @@ def main() -> None:
                 unsafe_allow_html=True,
             )
 
-        # Laya Decision Layer Status
-        st.markdown(
-            "<div style='background:#1e1b4b; border:1px solid #6366f1; border-radius:10px; padding:10px 14px; margin-bottom:12px;'>"
-            "<div style='font-size:0.78rem; font-weight:700; color:#c7d2fe;'>● LAYA DECISION LAYER</div>"
-            "<div style='font-size:0.75rem; color:#a5b4fc; margin-top:2px;'>Active · Feasible Candidate Revalidation</div>"
-            "</div>",
-            unsafe_allow_html=True,
-        )
+        # Live Laya / Fallback Decision Provider Status
+        engine_status = check_decision_engine_status()
+        if engine_status and engine_status.get("laya_available", engine_status.get("available")):
+            env_txt = engine_status.get("app_env", "local")
+            state_txt = "Loaded" if engine_status.get("loaded") else "Lazy Ready"
+            model_txt = engine_status.get("model", "english")
+            prec_txt = "bf16" if engine_status.get("cpu_bfloat16") else "fp32"
+            cap_txt = engine_status.get("max_candidates", 5)
+            st.markdown(
+                "<div style='background:#1e1b4b; border:1px solid #6366f1; border-radius:10px; padding:10px 14px; margin-bottom:12px;'>"
+                "<div style='font-size:0.78rem; font-weight:700; color:#c7d2fe;'>● LAYA DECISION LAYER</div>"
+                f"<div style='font-size:0.75rem; color:#a5b4fc; margin-top:2px;'>{env_txt} · {state_txt} · {model_txt} ({prec_txt}, cap={cap_txt})</div>"
+                "</div>",
+                unsafe_allow_html=True,
+            )
+        elif engine_status:
+            env_txt = engine_status.get("app_env", "production")
+            reason_txt = str(engine_status.get("reason") or "")
+            if env_txt == "render" or "512 mb" in reason_txt.lower():
+                subtitle = f"{env_txt} · Weighted fallback active (Render backup)"
+            else:
+                subtitle = f"{env_txt} · Weighted fallback active"
+            st.markdown(
+                "<div style='background:#451a03; border:1px solid #d97706; border-radius:10px; padding:10px 14px; margin-bottom:12px;'>"
+                "<div style='font-size:0.78rem; font-weight:700; color:#fcd34d;'>● WEIGHTED FALLBACK ACTIVE</div>"
+                f"<div style='font-size:0.75rem; color:#fde68a; margin-top:2px;'>{subtitle}</div>"
+                "</div>",
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                "<div style='background:#312e81; border:1px solid #818cf8; border-radius:10px; padding:10px 14px; margin-bottom:12px;'>"
+                "<div style='font-size:0.78rem; font-weight:700; color:#e0e7ff;'>● DECISION ENGINE OFFLINE</div>"
+                "<div style='font-size:0.75rem; color:#c7d2fe; margin-top:2px;'>Backend unreachable</div>"
+                "</div>",
+                unsafe_allow_html=True,
+            )
 
         st.caption(f"API Target: `{API_BASE_URL}`")
 
