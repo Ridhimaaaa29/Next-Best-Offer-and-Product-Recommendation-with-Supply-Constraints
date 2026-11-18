@@ -20,7 +20,18 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000/api/v1").rstrip("/")
+def get_config(name, default):
+    try:
+        return st.secrets.get(name) or os.getenv(name, default)
+    except Exception:
+        return os.getenv(name, default)
+
+
+API_BASE_URL = get_config(
+    "API_BASE_URL",
+    "http://localhost:8000/api/v1"
+).rstrip("/")
+
 TIMEOUT = int(os.getenv("API_TIMEOUT_SECONDS", "15"))
 RECOMMEND_TIMEOUT = int(os.getenv("RECOMMEND_TIMEOUT_SECONDS", "90"))
 
