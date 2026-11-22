@@ -90,3 +90,52 @@
   ]
 }
 ```
+
+
+---
+
+## 7. Dispatch Endpoint
+
+### POST /api/v1/catalogue/{product_id}/dispatch
+
+**Summary:** Atomically deduct inventory stock and optionally create a decision audit record in the same PostgreSQL transaction. Both operations are protected by a row-level SELECT … FOR UPDATE lock. If either operation fails the entire transaction is rolled back.
+
+**Path Parameter:** product_id — The product to dispatch (must exist in operational_catalogue).
+
+**Request Body (JSON):**
+`json
+{
+  "quantity": 2,
+  "customer_id": "CUST_0001",
+  "ranking_method": "NBO_DISPATCH",
+  "candidate_products": ["PROD_0012", "PROD_0023"],
+  "feasible_products": ["PROD_0012"],
+  "excluded_products": ["PROD_0023"],
+  "selected_product_id": "PROD_0012",
+  "decision_explanation": "Top NBO pick dispatched for customer CUST_0001.",
+  "fallback_used": false,
+  "fallback_reason": null
+}
+`
+
+Fields customer_id and all audit fields are optional. When customer_id is omitted, inventory is still deducted atomically but no audit record is created.
+
+**Response 200 OK:**
+`json
+{
+  "dispatched": true,
+  "product_id": "PROD_0012",
+  "quantity_dispatched": 2,
+  "stock_before": 50.0,
+  "stock_after": 48.0,
+  "inventory_status": "in_stock",
+  "product_name": "Wireless Noise-Canceling Headphones",
+  "decision_id": "3f4a1b2c-...",
+  "audit_created": true
+}
+`
+
+**Error Responses:**
+- 404 Not Found — Product not in operational catalogue.
+- 400 Bad Request — Insufficient stock (vailable < requested), zero or negative quantity, or quantity > 100.
+- 500 Internal Server Error — Transaction failed and was rolled back.

@@ -13,6 +13,12 @@
 
 ---
 
-### 2. Planned Iterations
+### 2. Resolved Limitations (Previously Listed)
+* **Dispatch Atomicity**: Inventory deduction and audit creation previously executed in separate transactions. This has been resolved — both now run in a single PostgreSQL transaction with `SELECT … FOR UPDATE` row-level locking. A failed audit write rolls back the stock deduction, and vice-versa.
+* **Content-Based Similarity**: A TF-IDF + cosine similarity engine (`backend/app/recommendation/content_based.py`) has been added, exposing `GET /api/v1/recommendations/similar-products`.
+
+### 3. Planned Iterations
 * **Association Rules & Collaborative Filtering**: Matrix factorization (Implicit ALS) and basket mining stubs are defined in `backend/app/recommendation/`.
 * **Agentic Explanations**: Natural language generative rationales for recommended offers (stubs in `backend/app/agents/`).
+* **Inventory Cache Layer**: Redis/KeyDB CDC cache for sub-5ms stock checks at scale.
+* **Vector Indexing**: HNSW/Milvus for catalog scales beyond 100k SKUs.

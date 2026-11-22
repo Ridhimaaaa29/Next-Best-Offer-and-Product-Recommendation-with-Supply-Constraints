@@ -127,3 +127,58 @@ def generate_recommendations(
         recommendations=formatted_recs,
         excluded_candidates=excluded,
     )
+
+
+@router.post(
+    "/recommendations/similar-products",
+    status_code=status.HTTP_200_OK,
+    summary="Generate Semantic Vector Similar Product Recommendations",
+)
+def get_similar_products_endpoint(
+    payload: dict,
+    db: Session = Depends(get_db),
+) -> dict:
+    """
+    Computes pairwise vector embeddings and cosine similarity to discover semantically related products.
+    """
+    product_id = payload.get("product_id")
+    top_n = int(payload.get("top_n", 5))
+    if not product_id:
+        raise HTTPException(status_code=400, detail="Missing product_id in request payload.")
+
+    import pandas as pd
+    from pathlib import Path
+    from backend.app.recommendation.content_based import get_content_recommender
+    from backend.app.db.models import Product
+
+    # Query products from DB or fallback to synthetic CSV
+    products = db.query(Product).all()
+    if products:
+        p_data = [
+            {
+                "product_id": p.product_id,
+                "product_name": p.product_name,
+                "category": p.category,
+                "subcategory": p.subcategory,
+                "brand": p.brand,
+                "unit_price": p.unit_price,
+                "product_rating": p.product_rating,
+                "product_popularity": p.product_popularity,
+            }
+            for p in products
+        ]
+        df = pd.DataFrame(p_data)
+    else:
+        csv_path = Path("data/synthetic/products.csv")
+        df = pd.read_csv(csv_path) if csv_path.exists() else pd.DataFrame()
+
+    recommender = get_content_recommender(df)
+    similar_items = recommender.get_similar_products_detailed(product_id, top_n=top_n)
+
+    return {
+        "status": "SUCCESS",
+        "product_id": product_id,
+        "vector_model": "TF-IDF + Cosine Similarity Vector Space",
+        "total_embeddings_indexed": len(df),
+        "similar_products": similar_items,
+    }

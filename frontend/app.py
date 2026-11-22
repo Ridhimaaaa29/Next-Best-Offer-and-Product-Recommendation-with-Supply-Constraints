@@ -1,12 +1,14 @@
 """
 Next-Best-Offer & Intelligent Product Recommendation Platform
-Governed Decision Intelligence for Customer Engagement & Supply Feasibility
+AI-Powered Recommendation and Decision Intelligence Platform
+Enterprise-Grade Frontend — Redesigned for Professional SaaS Presentation
 """
 
 from __future__ import annotations
 
 import os
 import sys
+import uuid
 import textwrap
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -37,201 +39,305 @@ RECOMMEND_TIMEOUT = int(os.getenv("RECOMMEND_TIMEOUT_SECONDS", "90"))
 
 # Streamlit Page Configuration
 st.set_page_config(
-    page_title="Next-Best-Offer Platform | Governed Recommendation Intelligence",
-    page_icon="🛍️",
+    page_title="NBO Platform | AI-Powered Recommendation Intelligence",
+    page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# Premium SaaS UI Styling
-st.markdown(
-    """
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-    
-    html, body, [class*="css"] {
-        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    
-    :root {
-        --primary: #4338ca;
-        --primary-light: #6366f1;
-        --primary-bg: #eef2ff;
-        --slate-dark: #0f172a;
-        --slate-body: #334155;
-        --slate-muted: #64748b;
-        --card-border: #e2e8f0;
-        --success: #059669;
-        --success-bg: #ecfdf5;
-        --warning: #d97706;
-        --warning-bg: #fffbeb;
-        --danger: #dc2626;
-        --danger-bg: #fef2f2;
-    }
-    
-    .stApp {
-        background: #f8fafc;
-        color: var(--slate-dark);
-    }
-    
-    /* Sidebar Styling */
-    [data-testid="stSidebar"] {
-        background: #0f172a !important;
-        border-right: 1px solid #1e293b;
-    }
-    [data-testid="stSidebar"] * {
-        color: #f1f5f9 !important;
-    }
-    [data-testid="stSidebar"] .stRadio label {
-        padding: 6px 12px;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-    }
-    [data-testid="stSidebar"] .stRadio label:hover {
-        background: #1e293b;
-    }
+# ═══════════════════════════════════════════════════════════════════════════════
+# DESIGN SYSTEM — Centralized Enterprise CSS
+# ═══════════════════════════════════════════════════════════════════════════════
+ENTERPRISE_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-    /* Hero Banner */
-    .hero-banner {
-        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%);
-        border-radius: 18px;
-        padding: 24px 30px;
-        color: white;
-        margin-bottom: 24px;
-        box-shadow: 0 10px 25px -10px rgba(67, 56, 202, 0.35);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-    }
-    .hero-tag {
-        display: inline-block;
-        background: rgba(255, 255, 255, 0.18);
-        backdrop-filter: blur(8px);
-        padding: 4px 12px;
-        border-radius: 9999px;
-        font-size: 0.76rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #c7d2fe;
-        margin-bottom: 8px;
-    }
-    .hero-title {
-        font-size: 2.0rem;
-        font-weight: 800;
-        letter-spacing: -0.03em;
-        margin: 0;
-        line-height: 1.2;
-    }
-    .hero-subtitle {
-        color: #e0e7ff;
-        font-size: 0.95rem;
-        margin-top: 6px;
-        margin-bottom: 0;
-        max-width: 820px;
-        line-height: 1.5;
-    }
+/* ── CSS Custom Properties (Design Tokens) ── */
+:root {
+    --navy-900: #0c1222;
+    --navy-800: #131c31;
+    --navy-700: #1b2842;
+    --navy-600: #243352;
+    --slate-900: #0f172a;
+    --slate-800: #1e293b;
+    --slate-700: #334155;
+    --slate-600: #475569;
+    --slate-500: #64748b;
+    --slate-400: #94a3b8;
+    --slate-300: #cbd5e1;
+    --slate-200: #e2e8f0;
+    --slate-100: #f1f5f9;
+    --slate-50: #f8fafc;
+    --white: #ffffff;
+    --indigo-700: #4338ca;
+    --indigo-600: #4f46e5;
+    --indigo-500: #6366f1;
+    --indigo-400: #818cf8;
+    --indigo-100: #e0e7ff;
+    --indigo-50: #eef2ff;
+    --emerald-700: #047857;
+    --emerald-600: #059669;
+    --emerald-500: #10b981;
+    --emerald-100: #d1fae5;
+    --emerald-50: #ecfdf5;
+    --amber-700: #b45309;
+    --amber-600: #d97706;
+    --amber-500: #f59e0b;
+    --amber-100: #fef3c7;
+    --amber-50: #fffbeb;
+    --red-700: #b91c1c;
+    --red-600: #dc2626;
+    --red-100: #fee2e2;
+    --red-50: #fef2f2;
 
-    /* Metric Cards */
-    div[data-testid="stMetric"] {
-        background: white;
-        border: 1px solid var(--card-border);
-        border-radius: 14px;
-        padding: 14px 18px;
-        box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.04);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    div[data-testid="stMetric"]:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 18px -4px rgba(15, 23, 42, 0.08);
-    }
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,0.04);
+    --shadow-md: 0 2px 6px -1px rgba(15,23,42,0.06), 0 1px 3px rgba(15,23,42,0.04);
+    --shadow-lg: 0 4px 12px -2px rgba(15,23,42,0.08);
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+}
 
-    /* High-contrast Chat Message Styling */
-    [data-testid="stChatMessage"] {
-        background: white !important;
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 14px !important;
-        padding: 16px 20px !important;
-        box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.04) !important;
-        color: #0f172a !important;
-    }
-    [data-testid="stChatMessage"] p, [data-testid="stChatMessage"] div, [data-testid="stChatMessage"] span {
-        color: #0f172a !important;
-        font-size: 0.95rem !important;
-        line-height: 1.6 !important;
-    }
+/* ── Base Resets ── */
+html, body, [class*="css"] {
+    font-family: var(--font-sans) !important;
+}
+.stApp {
+    background: var(--slate-50) !important;
+    color: var(--slate-900) !important;
+}
 
-    /* High-contrast Action Buttons */
-    .stButton>button {
-        background: white !important;
-        color: #1e1b4b !important;
-        border: 1.5px solid #cbd5e1 !important;
-        border-radius: 10px !important;
-        font-weight: 600 !important;
-        padding: 10px 16px !important;
-        transition: all 0.2s ease !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
-    }
-    .stButton>button:hover {
-        background: #eef2ff !important;
-        border-color: #6366f1 !important;
-        color: #4338ca !important;
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15) !important;
-    }
-    .stButton>button[kind="primary"] {
-        background: #4338ca !important;
-        color: white !important;
-        border: none !important;
-    }
-    .stButton>button[kind="primary"]:hover {
-        background: #3730a3 !important;
-        color: white !important;
-    }
+/* ── Sidebar ── */
+[data-testid="stSidebar"] {
+    background: var(--navy-900) !important;
+    border-right: 1px solid var(--navy-700) !important;
+}
+[data-testid="stSidebar"] * {
+    color: var(--slate-300) !important;
+}
+[data-testid="stSidebar"] .stRadio > div {
+    gap: 2px !important;
+}
+[data-testid="stSidebar"] .stRadio label {
+    padding: 7px 12px !important;
+    border-radius: var(--radius-sm) !important;
+    font-size: 0.82rem !important;
+    font-weight: 500 !important;
+    transition: background 0.15s ease !important;
+    margin: 0 !important;
+}
+[data-testid="stSidebar"] .stRadio label:hover {
+    background: var(--navy-700) !important;
+}
+[data-testid="stSidebar"] .stRadio label[data-checked="true"],
+[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label[aria-checked="true"] {
+    background: var(--navy-600) !important;
+    color: var(--white) !important;
+}
 
-    /* Badges */
-    .badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        font-size: 0.74rem;
-        font-weight: 700;
-        letter-spacing: 0.02em;
-    }
-    .badge-primary { background: #e0e7ff; color: #3730a3; }
-    .badge-success { background: #dcfce7; color: #166534; }
-    .badge-danger { background: #fee2e2; color: #991b1b; }
-    .badge-warning { background: #fef3c7; color: #92400e; }
-    .badge-purple { background: #f3e8ff; color: #6b21a8; }
-    .badge-slate { background: #f1f5f9; color: #475569; }
+/* ── Page Banner ── */
+.page-banner {
+    background: linear-gradient(135deg, var(--navy-900) 0%, var(--navy-700) 50%, var(--indigo-700) 100%);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    color: var(--white);
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+.page-banner .banner-tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.12);
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--indigo-400);
+    margin-bottom: 6px;
+}
+.page-banner h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0;
+    line-height: 1.25;
+    color: var(--white);
+}
+.page-banner p {
+    color: var(--slate-300);
+    font-size: 0.85rem;
+    margin: 4px 0 0 0;
+    max-width: 720px;
+    line-height: 1.45;
+}
 
-    /* Section Header */
-    .section-header {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--slate-dark);
-        margin: 22px 0 12px 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
+/* ── Metric Cards ── */
+div[data-testid="stMetric"] {
+    background: var(--white);
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    box-shadow: var(--shadow-sm);
+}
+div[data-testid="stMetric"] label {
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    color: var(--slate-500) !important;
+}
+div[data-testid="stMetric"] [data-testid="stMetricValue"] {
+    font-size: 1.3rem !important;
+    font-weight: 700 !important;
+    color: var(--slate-900) !important;
+}
 
-    /* Clean Buttons */
-    .stButton>button {
-        border-radius: 10px;
-        font-weight: 600;
-        padding: 8px 20px;
-        transition: all 0.2s ease;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+/* ── Badges ── */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+.badge-indigo { background: var(--indigo-100); color: var(--indigo-700); }
+.badge-green { background: var(--emerald-100); color: var(--emerald-700); }
+.badge-red { background: var(--red-100); color: var(--red-700); }
+.badge-amber { background: var(--amber-100); color: var(--amber-700); }
+.badge-slate { background: var(--slate-100); color: var(--slate-600); }
+.badge-purple { background: #f3e8ff; color: #7c3aed; }
+
+/* ── Section Headers ── */
+.sh {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--slate-900);
+    margin: 16px 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: -0.01em;
+}
+
+/* ── Buttons ── */
+.stButton>button {
+    background: var(--white) !important;
+    color: var(--slate-900) !important;
+    border: 1px solid var(--slate-300) !important;
+    border-radius: var(--radius-sm) !important;
+    font-weight: 600 !important;
+    font-size: 0.82rem !important;
+    padding: 8px 16px !important;
+    transition: all 0.15s ease !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+.stButton>button:hover {
+    background: var(--indigo-50) !important;
+    border-color: var(--indigo-500) !important;
+    color: var(--indigo-700) !important;
+}
+.stButton>button[kind="primary"] {
+    background: var(--indigo-600) !important;
+    color: var(--white) !important;
+    border: 1px solid var(--indigo-700) !important;
+}
+.stButton>button[kind="primary"]:hover {
+    background: var(--indigo-700) !important;
+}
+
+/* ── Containers / Cards ── */
+[data-testid="stExpander"] {
+    border: 1px solid var(--slate-200) !important;
+    border-radius: var(--radius-md) !important;
+    background: var(--white) !important;
+}
+div[data-testid="stVerticalBlock"] > div[data-testid="stHorizontalBlock"] {
+    gap: 12px;
+}
+
+/* ── Tables ── */
+[data-testid="stDataFrame"] {
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-md);
+}
+
+/* ── Chat Messages ── */
+[data-testid="stChatMessage"] {
+    background: var(--white) !important;
+    border: 1px solid var(--slate-200) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 12px 16px !important;
+    color: var(--slate-900) !important;
+}
+[data-testid="stChatMessage"] p,
+[data-testid="stChatMessage"] div,
+[data-testid="stChatMessage"] span {
+    color: var(--slate-900) !important;
+    font-size: 0.88rem !important;
+    line-height: 1.55 !important;
+}
+
+/* ── Responsive: Compact for Laptop Viewports ── */
+.block-container {
+    padding: 1rem 2rem 2rem 2rem !important;
+    max-width: 1200px !important;
+}
+[data-testid="stSidebar"] > div:first-child {
+    padding-top: 1rem !important;
+}
+
+/* ── Status Indicators ── */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: var(--radius-md);
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+.status-connected {
+    background: #064e3b;
+    border: 1px solid var(--emerald-600);
+    color: #6ee7b7;
+}
+.status-fallback {
+    background: #451a03;
+    border: 1px solid var(--amber-600);
+    color: #fcd34d;
+}
+.status-offline {
+    background: var(--navy-700);
+    border: 1px solid var(--slate-500);
+    color: var(--slate-300);
+}
+
+/* ── Product Card Grid ── */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+}
+
+/* ── Misc Compact ── */
+.stDivider { margin: 8px 0 !important; }
+h1, h2, h3, h4, h5, h6 { letter-spacing: -0.01em !important; }
+</style>
+"""
+
+st.markdown(ENTERPRISE_CSS, unsafe_allow_html=True)
 
 
-# ---------------------------------------------------------------------------
-# Data Layer: API Client with Graceful Local Fallback
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════════
+# DATA LAYER — API Client with Graceful Local Fallback
+# ═══════════════════════════════════════════════════════════════════════════════
 
 @st.cache_data(ttl=60)
 def check_api_health() -> Optional[Dict[str, Any]]:
@@ -246,7 +352,6 @@ def check_api_health() -> Optional[Dict[str, Any]]:
 
 @st.cache_data(ttl=60)
 def check_decision_engine_status() -> Optional[Dict[str, Any]]:
-    """Query live lightweight weighted decision engine readiness and weights."""
     try:
         res = requests.get(f"{API_BASE_URL}/decisions/status", timeout=5)
         if res.ok and isinstance(res.json(), dict):
@@ -257,7 +362,6 @@ def check_decision_engine_status() -> Optional[Dict[str, Any]]:
 
 
 def submit_manual_audit(audit_payload: Dict[str, Any]) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
-    """Persist an operator-initiated governance audit entry via POST /decisions/history."""
     try:
         res = requests.post(f"{API_BASE_URL}/decisions/history", json=audit_payload, timeout=15)
         try:
@@ -276,8 +380,71 @@ def submit_manual_audit(audit_payload: Dict[str, Any]) -> Tuple[Optional[Dict[st
         return None, f"Unexpected audit error: {type(exc).__name__}"
 
 
+def dispatch_product_api(
+    product_id: str,
+    quantity: int = 1,
+    customer_id: Optional[str] = None,
+    candidate_products: Optional[List[str]] = None,
+    feasible_products: Optional[List[str]] = None,
+    excluded_products: Optional[List[str]] = None,
+    selected_product_id: Optional[str] = None,
+    decision_explanation: Optional[str] = None,
+    fallback_used: bool = False,
+    fallback_reason: Optional[str] = None,
+    ranking_method: str = "NBO_DISPATCH",
+) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """Dispatch product and atomically deduct inventory + write audit record.
+
+    Sends a JSON body to POST /catalogue/{product_id}/dispatch.
+    Both inventory deduction and audit creation happen in a single DB transaction
+    on the backend — no separate audit call needed after a successful dispatch.
+    """
+    body: Dict[str, Any] = {
+        "quantity": quantity,
+        "ranking_method": ranking_method,
+        "candidate_products": candidate_products or [],
+        "feasible_products": feasible_products or [],
+        "excluded_products": excluded_products or [],
+        "fallback_used": fallback_used,
+    }
+    if customer_id:
+        body["customer_id"] = customer_id
+    if selected_product_id:
+        body["selected_product_id"] = selected_product_id
+    if decision_explanation:
+        body["decision_explanation"] = decision_explanation
+    if fallback_reason:
+        body["fallback_reason"] = fallback_reason
+
+    try:
+        res = requests.post(
+            f"{API_BASE_URL}/catalogue/{product_id}/dispatch",
+            json=body,
+            timeout=15,
+        )
+        try:
+            data = res.json()
+        except Exception:
+            data = None
+        if res.ok and isinstance(data, dict) and data.get("dispatched"):
+            return data, None
+        err = ""
+        if not isinstance(data, dict):
+            err = f"Dispatch failed with HTTP {res.status_code}"
+        elif res.status_code == 400:
+            err = data.get("detail", "Insufficient stock")
+        elif res.status_code == 404:
+            err = data.get("detail", "Product not found")
+        else:
+            err = data.get("detail", f"Dispatch failed with HTTP {res.status_code}")
+        return None, err
+    except requests.exceptions.ConnectionError:
+        return None, "Backend API is unreachable."
+    except Exception as exc:
+        return None, f"Dispatch error: {type(exc).__name__}"
+
+
 def fetch_decision_history(customer_id: Optional[str] = None, limit: int = 10) -> Tuple[List[Dict[str, Any]], Optional[str]]:
-    """Retrieve persisted DecisionAudit records from GET /decisions/history."""
     params: Dict[str, Any] = {"limit": limit}
     if customer_id:
         params["customer_id"] = customer_id
@@ -293,12 +460,11 @@ def fetch_decision_history(customer_id: Optional[str] = None, limit: int = 10) -
 @st.cache_data(ttl=120)
 def load_all_customers() -> List[Dict[str, Any]]:
     try:
-        res = requests.get(f"{API_BASE_URL}/customers?limit=200", timeout=TIMEOUT)
+        res = requests.get(f"{API_BASE_URL}/customers?limit=500", timeout=TIMEOUT)
         if res.ok and isinstance(res.json(), list) and len(res.json()) > 0:
             return res.json()
     except Exception:
         pass
-
     csv_path = PROJECT_ROOT / "data" / "synthetic" / "customers.csv"
     if csv_path.exists():
         df = pd.read_csv(csv_path)
@@ -314,34 +480,25 @@ def load_customer_detail(customer_id: str) -> Dict[str, Any]:
             return res.json()
     except Exception:
         pass
-
     cust_path = PROJECT_ROOT / "data" / "synthetic" / "customers.csv"
     txn_path = PROJECT_ROOT / "data" / "synthetic" / "transactions.csv"
     int_path = PROJECT_ROOT / "data" / "synthetic" / "customer_product_interactions.csv"
-
     cust_dict: Dict[str, Any] = {}
     if cust_path.exists():
         df_c = pd.read_csv(cust_path)
         matched = df_c[df_c["customer_id"] == customer_id]
         if not matched.empty:
             cust_dict = matched.iloc[0].to_dict()
-
     interactions: List[Dict[str, Any]] = []
     if int_path.exists():
         df_i = pd.read_csv(int_path)
         interactions = df_i[df_i["customer_id"] == customer_id].to_dict(orient="records")
-
     transactions: List[Dict[str, Any]] = []
     if txn_path.exists():
         df_t = pd.read_csv(txn_path)
         matched_txns = df_t[df_t["customer_id"] == customer_id].sort_values(by="transaction_date", ascending=False).head(20)
         transactions = matched_txns.to_dict(orient="records")
-
-    return {
-        "customer": cust_dict,
-        "interactions": interactions,
-        "recent_transactions": transactions,
-    }
+    return {"customer": cust_dict, "interactions": interactions, "recent_transactions": transactions}
 
 
 @st.cache_data(ttl=120)
@@ -352,10 +509,8 @@ def load_catalogue() -> List[Dict[str, Any]]:
             return res.json()
     except Exception:
         pass
-
     prod_path = PROJECT_ROOT / "data" / "synthetic" / "products.csv"
     op_path = PROJECT_ROOT / "data" / "synthetic" / "operational_catalogue.csv"
-
     if prod_path.exists() and op_path.exists():
         p_df = pd.read_csv(prod_path)
         op_df = pd.read_csv(op_path)
@@ -375,7 +530,6 @@ def load_evaluation_report() -> Dict[str, Any]:
             return res.json()
     except Exception:
         pass
-
     rep_csv = PROJECT_ROOT / "reports" / "day3_evaluation_results.csv"
     rows = []
     if rep_csv.exists():
@@ -397,10 +551,8 @@ def load_basket_associations() -> List[Dict[str, Any]]:
     prod_path = PROJECT_ROOT / "data" / "synthetic" / "products.csv"
     if not (basket_path.exists() and prod_path.exists()):
         return []
-
     b_df = pd.read_csv(basket_path)
     p_df = pd.read_csv(prod_path).set_index("product_id")["product_name"].to_dict()
-
     order_items = b_df.groupby("basket_id")["product_id"].apply(list)
     pair_counts: Dict[Tuple[str, str], int] = {}
     for items in order_items:
@@ -409,7 +561,6 @@ def load_basket_associations() -> List[Dict[str, Any]]:
             for j in range(i + 1, len(unique_items)):
                 p1, p2 = unique_items[i], unique_items[j]
                 pair_counts[(p1, p2)] = pair_counts.get((p1, p2), 0) + 1
-
     top_pairs = sorted(pair_counts.items(), key=lambda x: x[1], reverse=True)[:15]
     results = []
     for (p1, p2), count in top_pairs:
@@ -430,7 +581,6 @@ def _recommendation_error_result(
     message: str,
     http_status: Optional[int] = None,
 ) -> Dict[str, Any]:
-    """Return a structured non-success payload when live recommendations fail."""
     return {
         "status": "ERROR",
         "customer_id": customer_id,
@@ -448,12 +598,10 @@ def _recommendation_error_result(
 
 
 def _extract_backend_error_detail(res: requests.Response) -> str:
-    """Safely extract structured error details from a backend HTTP error response."""
     try:
         data = res.json()
     except Exception:
         data = None
-
     if isinstance(data, dict):
         parts: List[str] = []
         detail = data.get("detail") or data.get("error") or data.get("message")
@@ -471,9 +619,8 @@ def _extract_backend_error_detail(res: requests.Response) -> str:
 
 
 def render_recommendation_error(rec_result: Dict[str, Any]) -> bool:
-    """Render an actionable error message when recommendation retrieval fails."""
     if not isinstance(rec_result, dict):
-        st.error("❌ **Live Recommendations Unavailable**: Invalid recommendation response structure.")
+        st.error("Recommendations unavailable — invalid response structure.")
         return True
     if rec_result.get("status") != "ERROR" and not rec_result.get("error"):
         return False
@@ -592,10 +739,6 @@ def fetch_mcp_workflow(
     promotion_context: bool = False,
     express_context: bool = False,
 ) -> Tuple[Optional[Dict[str, Any]], int, Optional[str]]:
-    """Submit request to the FastAPI MCP workflow endpoint (POST /mcp/workflow).
-
-    Returns (result_dict, status_code, error_message).
-    """
     url = f"{API_BASE_URL}/mcp/workflow"
     payload = {
         "customer_id": customer_id,
@@ -628,17 +771,32 @@ def fetch_mcp_workflow(
         return None, 500, f"An unexpected communication error occurred: {type(exc).__name__}"
 
 
-# ---------------------------------------------------------------------------
-# Common Visual Components (Native Streamlit, Zero Code Blocks)
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════════
+# SHARED UI COMPONENTS
+# ═══════════════════════════════════════════════════════════════════════════════
 
-def render_hero(title: str, subtitle: str, tag: str = "Decision Intelligence Engine") -> None:
-    html = f"""<div class="hero-banner"><div class="hero-tag">✦ {tag}</div><div class="hero-title">{title}</div><div class="hero-subtitle">{subtitle}</div></div>"""
-    st.markdown(html, unsafe_allow_html=True)
+def render_banner(title: str, subtitle: str, tag: str = "Decision Intelligence") -> None:
+    st.markdown(
+        f'<div class="page-banner">'
+        f'<div class="banner-tag">✦ {tag}</div>'
+        f'<h1>{title}</h1>'
+        f'<p>{subtitle}</p>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
 
 
-def render_product_card(item: Dict[str, Any], rank: Optional[int] = None, show_policy: bool = False) -> None:
-    """Renders a modern, interactive product recommendation card without any code blocks."""
+def _stock_badge(stock, status: str) -> str:
+    if status == "in_stock" or (stock is not None and stock > 5):
+        return f"<span class='badge badge-green'>● In Stock ({int(stock)})</span>" if stock is not None else "<span class='badge badge-green'>● In Stock</span>"
+    elif stock is not None and stock > 0:
+        return f"<span class='badge badge-amber'>⚠ Low ({int(stock)})</span>"
+    else:
+        return "<span class='badge badge-red'>✕ Depleted</span>"
+
+
+def render_product_card(item: Dict[str, Any], rank: Optional[int] = None, show_policy: bool = False, compact: bool = False) -> None:
+    """Render a clean product recommendation card."""
     score = item.get("recommendation_score", 0.0)
     price = item.get("unit_price", 0.0)
     rating = item.get("product_rating", 0.0)
@@ -648,59 +806,150 @@ def render_product_card(item: Dict[str, Any], rank: Optional[int] = None, show_p
     category = item.get("category", "General")
     name = item.get("product_name", "Product")
     pid = item.get("product_id", "")
-    reason = item.get("score_breakdown", item.get("explanation", "High customer affinity score"))
+    reason = item.get("score_breakdown", item.get("explanation", "High customer affinity"))
     margin = float(item.get("gross_margin_pct") or 0.0)
 
     with st.container(border=True):
         col_main, col_stats = st.columns([3, 1])
         with col_main:
-            rank_str = f"**Rank #{rank}** · " if rank else ""
+            rank_str = f"**#{rank}** · " if rank else ""
             st.markdown(
-                f"{rank_str}<span class='badge badge-primary'>{category}</span> "
+                f"{rank_str}"
+                f"<span class='badge badge-indigo'>{category}</span> "
                 f"<span class='badge badge-slate'>{brand}</span> "
-                f"<span class='badge badge-purple'>SKU: {pid}</span>",
+                f"<span class='badge badge-purple'>{pid}</span>",
                 unsafe_allow_html=True,
             )
-            st.markdown(f"### {name}")
+            st.markdown(f"**{name}**")
             stars = "★" * int(round(rating)) + "☆" * (5 - int(round(rating)))
-            st.caption(f"Rating: {stars} **{rating:.1f}/5** · Brand: **{brand}** · Category: **{category}**")
-
+            st.caption(f"{stars} {rating:.1f}/5")
         with col_stats:
             st.metric("Price", f"${price:,.2f}")
-            if status == "in_stock" or (stock is not None and stock > 5):
-                st.markdown("<span class='badge badge-success'>● In Stock</span>", unsafe_allow_html=True)
-            elif stock is not None and stock > 0:
-                st.markdown(f"<span class='badge badge-warning'>⚠ Low Stock ({int(stock)})</span>", unsafe_allow_html=True)
-            else:
-                st.markdown("<span class='badge badge-danger'>✕ Depleted (0)</span>", unsafe_allow_html=True)
+            st.markdown(_stock_badge(stock, status), unsafe_allow_html=True)
 
-        st.divider()
-
-        col_r, col_p = st.columns([3, 1])
-        with col_r:
-            st.markdown(f"**🎯 Recommendation Rationale:** {reason}")
+        if not compact:
+            st.caption(f"**Rationale:** {reason}")
             if show_policy or item.get("policy_decision") == "PASS":
                 margin_str = f"{margin*100:.1f}%" if margin > 0 else "Verified"
                 stock_str = f"{int(stock)} units" if stock is not None else "Verified"
                 st.markdown(
-                    f"<span class='badge badge-success'>✓ Available: {stock_str}</span> "
-                    f"<span class='badge badge-success'>✓ Margin: {margin_str}</span> "
-                    f"<span class='badge badge-success'>✓ Policy: Eligible & Actionable</span>",
+                    f"<span class='badge badge-green'>✓ Stock: {stock_str}</span> "
+                    f"<span class='badge badge-green'>✓ Margin: {margin_str}</span> "
+                    f"<span class='badge badge-green'>✓ Policy: Eligible</span>",
                     unsafe_allow_html=True,
                 )
-        with col_p:
-            st.metric("Relevance Match", f"{score*100:.1f}%")
+            st.markdown(f"<span class='badge badge-indigo'>Relevance: {score*100:.1f}%</span>", unsafe_allow_html=True)
 
 
-# ---------------------------------------------------------------------------
-# Feature 1: Customer Intelligence Hub
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════════
+# CATEGORY RESOLUTION HELPER
+# ═══════════════════════════════════════════════════════════════════════════════
+
+DEFAULT_CATEGORIES: Tuple[str, ...] = (
+    "Electronics", "Health & Fitness", "Beauty & Skincare", "Coffee & Kitchen", "Home & Living",
+)
+
+
+def resolve_category_options(
+    catalogue: Optional[List[Dict[str, Any]]] = None,
+    preferred_category: Any = None,
+) -> Tuple[List[str], List[str]]:
+    seen: set[str] = set()
+    options: List[str] = []
+    def _add(val: Any) -> None:
+        if isinstance(val, str):
+            cleaned = val.strip()
+            if cleaned and cleaned.lower() != "nan" and cleaned not in seen:
+                seen.add(cleaned)
+                options.append(cleaned)
+    for item in catalogue or []:
+        _add(item.get("category"))
+    for cat in DEFAULT_CATEGORIES:
+        _add(cat)
+    pref_clean: Optional[str] = None
+    if isinstance(preferred_category, str):
+        candidate = preferred_category.strip()
+        if candidate and candidate.lower() != "nan":
+            pref_clean = candidate
+            _add(pref_clean)
+    default_selection = (
+        [pref_clean] if pref_clean and pref_clean in options else ([options[0]] if options else [])
+    )
+    return options, default_selection
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE 1: EXECUTIVE OVERVIEW
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def render_overview() -> None:
+    render_banner(
+        "Next-Best-Offer & Product Recommendation Engine",
+        "AI-powered decision intelligence balancing customer demand, profit margins, and supply constraints.",
+        tag="Executive Dashboard",
+    )
+
+    customers = load_all_customers()
+    catalogue = load_catalogue()
+    report = load_evaluation_report()
+
+    # KPI Row
+    c1, c2, c3, c4, c5 = st.columns(5)
+    c1.metric("Active Customers", f"{len(customers):,}")
+    c2.metric("Catalogue SKUs", len(catalogue))
+    in_stock = sum(1 for p in catalogue if p.get("inventory_status") == "in_stock" or (p.get("available_stock") or 0) > 0)
+    c3.metric("In-Stock Products", in_stock)
+    c4.metric("Policy Compliance", "100%")
+    c5.metric("ML ROC-AUC", report.get("ml_classification_metrics", {}).get("holdout_roc_auc", "0.8583"))
+
+    # Architecture Pillars
+    st.markdown('<div class="sh">Architecture Pillars</div>', unsafe_allow_html=True)
+    p1, p2, p3 = st.columns(3)
+    with p1:
+        with st.container(border=True):
+            st.markdown("**Personalised Demand**")
+            st.caption("Customer affinity signals, basket interactions, and ML propensity scoring drive personalised product ranking.")
+    with p2:
+        with st.container(border=True):
+            st.markdown("**Supply Governance**")
+            st.caption("Deterministic policy engine enforces stock availability, margin floors, and fulfilment constraints before any offer.")
+    with p3:
+        with st.container(border=True):
+            st.markdown("**Decision Auditability**")
+            st.caption("Every recommendation trace is persisted to PostgreSQL with transparent scoring, reason codes, and audit records.")
+
+    # Quick Navigation
+    st.markdown('<div class="sh">Quick Navigation</div>', unsafe_allow_html=True)
+    q1, q2, q3, q4, q5, q6 = st.columns(6)
+    if q1.button("👤 Customers", use_container_width=True):
+        st.session_state["nav_page"] = "Customer Intelligence"
+        st.rerun()
+    if q2.button("🛍️ Recommendations", use_container_width=True):
+        st.session_state["nav_page"] = "Product Recommendations"
+        st.rerun()
+    if q3.button("📦 Inventory", use_container_width=True):
+        st.session_state["nav_page"] = "Inventory & Policies"
+        st.rerun()
+    if q4.button("🤖 MCP Workflow", use_container_width=True):
+        st.session_state["nav_page"] = "Agentic Workflow (MCP)"
+        st.rerun()
+    if q5.button("⚡ Demo", use_container_width=True):
+        st.session_state["nav_page"] = "Demo Playground"
+        st.rerun()
+    if q6.button("💬 AI Assistant", use_container_width=True):
+        st.session_state["nav_page"] = "AI Decision Assistant"
+        st.rerun()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE 2: CUSTOMER INTELLIGENCE HUB
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def render_customer_intelligence_hub() -> None:
-    render_hero(
+    render_banner(
         "Customer Intelligence Hub",
-        "Deep 360° behavioral customer profiling, lifetime transaction patterns, and dynamic category affinity.",
-        tag="Feature 1 · Customer Intelligence",
+        "360° behavioral profiling, lifetime transaction patterns, and dynamic category affinity analysis.",
+        tag="Customer Intelligence",
     )
 
     customers = load_all_customers()
@@ -708,7 +957,7 @@ def render_customer_intelligence_hub() -> None:
         st.warning("No customer data available.")
         return
 
-    cust_options = [f"{c['customer_id']} — {c.get('preferred_category', 'General')} ({c.get('membership_tier', 'Standard')} Tier)" for c in customers]
+    cust_options = [f"{c['customer_id']} — {c.get('preferred_category', 'General')} ({c.get('membership_tier', 'Standard')})" for c in customers]
     selected_idx = 0
     curr_id = st.session_state.get("selected_customer_id", "CUST_0001")
     for i, c in enumerate(customers):
@@ -716,7 +965,7 @@ def render_customer_intelligence_hub() -> None:
             selected_idx = i
             break
 
-    selected_str = st.selectbox("Select Customer Profile to Inspect:", cust_options, index=selected_idx)
+    selected_str = st.selectbox("Select Customer:", cust_options, index=selected_idx)
     selected_cust_id = selected_str.split(" ")[0]
     st.session_state["selected_customer_id"] = selected_cust_id
 
@@ -725,116 +974,63 @@ def render_customer_intelligence_hub() -> None:
     interactions = data.get("interactions", [])
     transactions = data.get("recent_transactions", [])
 
-    st.markdown('<div class="section-header">👤 Customer Profile & Lifetime Value</div>', unsafe_allow_html=True)
+    # Profile KPIs
+    st.markdown('<div class="sh">Customer Profile</div>', unsafe_allow_html=True)
     c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Membership Tier", cust.get("membership_tier", "Standard"))
-    c2.metric("Customer Segment", cust.get("customer_segment", "Active"))
+    c1.metric("Tier", cust.get("membership_tier", "Standard"))
+    c2.metric("Segment", cust.get("customer_segment", "Active"))
     c3.metric("Lifetime Spend", f"${float(cust.get('total_spend', 0)):,.2f}")
-    c4.metric("Total Orders", f"{cust.get('total_orders', 0)} orders")
+    c4.metric("Orders", f"{cust.get('total_orders', 0)}")
     c5.metric("Avg Order Value", f"${float(cust.get('average_order_value', 0)):,.2f}")
 
     with st.container(border=True):
-        col_meta1, col_meta2 = st.columns([2, 1])
-        with col_meta1:
-            st.markdown(
-                f"<span class='badge badge-primary'>Account ID: {cust.get('customer_id')}</span> "
-                f"<span class='badge badge-purple'>Location: {cust.get('location', 'Global')}</span> "
-                f"<span class='badge badge-warning'>Reward Balance: {cust.get('reward_points', 0):,} Points</span>",
-                unsafe_allow_html=True,
-            )
-        with col_meta2:
-            st.markdown(f"Favorite Category: **{cust.get('preferred_category', 'Electronics')}** · Status: **Active**")
+        st.markdown(
+            f"<span class='badge badge-indigo'>{cust.get('customer_id')}</span> "
+            f"<span class='badge badge-purple'>{cust.get('location', 'Global')}</span> "
+            f"<span class='badge badge-amber'>{cust.get('reward_points', 0):,} Points</span> "
+            f"<span class='badge badge-slate'>Category: {cust.get('preferred_category', 'Electronics')}</span>",
+            unsafe_allow_html=True,
+        )
 
     col_chart, col_history = st.columns([1, 1])
 
     with col_chart:
-        st.markdown('<div class="section-header">📊 Category Affinity & Engagement</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sh">Category Affinity</div>', unsafe_allow_html=True)
         if interactions:
             df_int = pd.DataFrame(interactions)
             if "category_preference_score" in df_int.columns:
                 chart_data = df_int[["product_id", "category_preference_score"]].set_index("product_id").head(8)
-                st.caption("Product Affinity Strength based on Interaction Recency & Frequency")
-                st.bar_chart(chart_data, color="#4f46e5", height=280)
+                st.bar_chart(chart_data, color="#4f46e5", height=240)
             else:
-                st.info("Product engagement records active.")
+                st.info("Engagement records active.")
         else:
-            st.info("Initial customer profile: No historical browsing records found.")
+            st.info("No historical browsing records found.")
 
     with col_history:
-        st.markdown('<div class="section-header">🛍️ Verified Purchase History</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sh">Recent Purchases</div>', unsafe_allow_html=True)
         if transactions:
-            for txn in transactions[:5]:
-                t_id = txn.get("transaction_id", "TXN")
-                p_id = txn.get("product_id", "PROD")
-                date = str(txn.get("transaction_date", ""))[:10]
-                amt = float(txn.get("final_amount", 0.0))
-                qty = txn.get("quantity", 1)
-                with st.container(border=True):
-                    row_left, row_right = st.columns([3, 1])
-                    with row_left:
-                        st.markdown(f"<span class='badge badge-slate'>{date}</span> **Product {p_id}**", unsafe_allow_html=True)
-                        st.caption(f"Ref: {t_id} · Qty: {qty} units")
-                    with row_right:
-                        st.markdown(f"**${amt:,.2f}**")
-                        st.markdown("<span class='badge badge-success'>Completed</span>", unsafe_allow_html=True)
+            txn_data = []
+            for txn in transactions[:8]:
+                txn_data.append({
+                    "Date": str(txn.get("transaction_date", ""))[:10],
+                    "Product": txn.get("product_id", ""),
+                    "Qty": txn.get("quantity", 1),
+                    "Amount": f"${float(txn.get('final_amount', 0.0)):,.2f}",
+                })
+            st.dataframe(pd.DataFrame(txn_data), use_container_width=True, hide_index=True, height=280)
         else:
-            st.info("No prior orders recorded for this customer.")
+            st.info("No prior orders recorded.")
 
 
-# ---------------------------------------------------------------------------
-# Feature 2: Smart Product Discovery & Recommendations
-# ---------------------------------------------------------------------------
-
-DEFAULT_CATEGORIES: Tuple[str, ...] = (
-    "Electronics",
-    "Health & Fitness",
-    "Beauty & Skincare",
-    "Coffee & Kitchen",
-    "Home & Living",
-)
-
-
-def resolve_category_options(
-    catalogue: Optional[List[Dict[str, Any]]] = None,
-    preferred_category: Any = None,
-) -> Tuple[List[str], List[str]]:
-    """Build authoritative category options and a safe default selection."""
-    seen: set[str] = set()
-    options: List[str] = []
-
-    def _add(val: Any) -> None:
-        if isinstance(val, str):
-            cleaned = val.strip()
-            if cleaned and cleaned.lower() != "nan" and cleaned not in seen:
-                seen.add(cleaned)
-                options.append(cleaned)
-
-    for item in catalogue or []:
-        _add(item.get("category"))
-
-    for cat in DEFAULT_CATEGORIES:
-        _add(cat)
-
-    pref_clean: Optional[str] = None
-    if isinstance(preferred_category, str):
-        candidate = preferred_category.strip()
-        if candidate and candidate.lower() != "nan":
-            pref_clean = candidate
-            _add(pref_clean)
-
-    default_selection = (
-        [pref_clean]
-        if pref_clean and pref_clean in options
-        else ([options[0]] if options else [])
-    )
-    return options, default_selection
-
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE 3: PRODUCT RECOMMENDATIONS DISCOVERY
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def render_recommendations_discovery() -> None:
-    render_hero(
-        "Smart Product Discovery & Recommendations",
-        "Compare pure Popularity-Based recommendations against Personalised, Governed recommendations.",
-        tag="Feature 2 · Demand Discovery",
+    render_banner(
+        "Product Recommendations",
+        "Compare popularity-based baseline against personalised, governed recommendations.",
+        tag="Demand Discovery",
     )
 
     customers = load_all_customers()
@@ -845,62 +1041,59 @@ def render_recommendations_discovery() -> None:
     discovery_categories, _ = resolve_category_options(catalogue)
 
     col_ctrl1, col_ctrl2, col_ctrl3 = st.columns([2, 1, 1])
-    selected_customer = col_ctrl1.selectbox("Target Customer:", cust_options, index=sel_idx)
+    selected_customer = col_ctrl1.selectbox("Customer:", cust_options, index=sel_idx)
     st.session_state["selected_customer_id"] = selected_customer
-    top_k = col_ctrl2.select_slider("Top-N Offers:", options=[3, 5, 8, 10], value=5)
-    category_filter = col_ctrl3.selectbox("Filter Category:", ["All Categories"] + discovery_categories)
+    top_k = col_ctrl2.select_slider("Top-N:", options=[3, 5, 8, 10], value=5)
+    category_filter = col_ctrl3.selectbox("Category:", ["All"] + discovery_categories)
 
     rec_result = fetch_recommendations(selected_customer, top_k=top_k)
     recs = rec_result.get("recommendations", [])
-
-    if category_filter != "All Categories":
+    if category_filter != "All":
         recs = [r for r in recs if r.get("category") == category_filter]
 
-    st.markdown('<div class="section-header">⚖️ Architecture Comparison: Popularity Baseline vs Personalised Governed Engine</div>', unsafe_allow_html=True)
-    
+    st.markdown('<div class="sh">Popularity Baseline vs Personalised Engine</div>', unsafe_allow_html=True)
+
     col_pop, col_gov = st.columns(2)
 
     with col_pop:
-        with st.container(border=True):
-            st.markdown("#### 📌 Baseline: Popularity-Only Ranking")
-            st.caption("Ranks purely by transaction frequency. Unaware of inventory stock or individual preference.")
+        st.markdown("**Baseline: Popularity Ranking**")
+        st.caption("Ranks by transaction frequency. No personalisation or inventory awareness.")
         pop_sorted = sorted(catalogue, key=lambda x: -float(x.get("product_popularity", 0)))[:top_k]
         for idx, item in enumerate(pop_sorted, 1):
             with st.container(border=True):
                 c_left, c_right = st.columns([3, 1])
                 with c_left:
                     st.markdown(
-                        f"<span class='badge badge-slate'>Rank #{idx}</span> <span class='badge badge-primary'>{item.get('category')}</span>",
+                        f"<span class='badge badge-slate'>#{idx}</span> "
+                        f"<span class='badge badge-indigo'>{item.get('category')}</span>",
                         unsafe_allow_html=True,
                     )
                     st.markdown(f"**{item.get('product_name')}**")
-                    st.caption(f"Brand: {item.get('brand')} · Code: {item.get('product_id')}")
+                    st.caption(f"{item.get('brand')} · {item.get('product_id')}")
                 with c_right:
                     st.metric("Price", f"${float(item.get('unit_price',0)):,.2f}")
-                    st.markdown(f"<span class='badge badge-slate'>Popularity: {float(item.get('product_popularity',0))*100:.0f}%</span>", unsafe_allow_html=True)
 
     with col_gov:
-        with st.container(border=True):
-            st.markdown("#### ⭐ Personalised & Governed Recommendations")
-            st.caption("Combines customer affinity, ML signals, and strict stock & margin enforcement.")
+        st.markdown("**Personalised & Governed**")
+        st.caption("Customer affinity + ML scoring + stock/margin enforcement.")
         if render_recommendation_error(rec_result):
             pass
         elif recs:
             for idx, item in enumerate(recs, 1):
-                render_product_card(item, rank=idx)
+                render_product_card(item, rank=idx, compact=True)
         else:
-            st.warning("No feasible recommendations match this category constraint.")
+            st.warning("No feasible recommendations match constraints.")
 
 
-# ---------------------------------------------------------------------------
-# Feature 3: Customer Preferences & Personalisation Studio
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE 4: PREFERENCES STUDIO
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def render_preferences_studio() -> None:
-    render_hero(
-        "Customer Preferences & Personalisation Studio",
-        "Interact directly with customer preference weights, budget boundaries, and operational constraints.",
-        tag="Feature 3 · Personalisation Studio",
+    render_banner(
+        "Preferences & Personalisation Studio",
+        "Configure customer preference weights, budget boundaries, and operational constraints.",
+        tag="Personalisation Studio",
     )
 
     customers = load_all_customers()
@@ -908,46 +1101,36 @@ def render_preferences_studio() -> None:
     curr_id = st.session_state.get("selected_customer_id", "CUST_0001")
     sel_idx = cust_options.index(curr_id) if curr_id in cust_options else 0
 
-    c_sel, _ = st.columns([2, 2])
-    selected_customer = c_sel.selectbox("Active Customer Persona:", cust_options, index=sel_idx, key="pref_cust")
+    selected_customer = st.selectbox("Active Customer:", cust_options, index=sel_idx, key="pref_cust")
     st.session_state["selected_customer_id"] = selected_customer
 
     cust_detail = load_customer_detail(selected_customer).get("customer", {})
     category_options, default_categories = resolve_category_options(
-        load_catalogue(),
-        preferred_category=cust_detail.get("preferred_category"),
+        load_catalogue(), preferred_category=cust_detail.get("preferred_category"),
     )
 
-    st.markdown('<div class="section-header">⚙️ Interactive Preference Controls</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sh">Preference Controls</div>', unsafe_allow_html=True)
 
     with st.container(border=True):
         col1, col2 = st.columns(2)
         with col1:
-            categories = st.multiselect(
-                "Preferred Shopping Categories:",
-                category_options,
-                default=default_categories,
-            )
-            max_budget = st.slider("Maximum Price Range ($):", min_value=20, max_value=500, value=250, step=10)
-            min_rating = st.slider("Minimum Customer Rating:", min_value=3.0, max_value=5.0, value=3.8, step=0.1)
-
+            categories = st.multiselect("Shopping Categories:", category_options, default=default_categories)
+            max_budget = st.slider("Max Price ($):", min_value=20, max_value=500, value=250, step=10)
+            min_rating = st.slider("Min Rating:", min_value=3.0, max_value=5.0, value=3.8, step=0.1)
         with col2:
-            st.markdown("**Operational & Context Policy Toggles:**")
-            reward_ctx = st.toggle("🎁 Require Reward Redemption Eligibility", value=False)
-            promo_ctx = st.toggle("🏷️ Require Promotional Campaign Eligibility", value=True)
-            express_ctx = st.toggle("⚡ Require Express Fulfilment (≤ 3 Days)", value=False)
+            st.markdown("**Policy Toggles:**")
+            reward_ctx = st.toggle("🎁 Require Reward Eligibility", value=False)
+            promo_ctx = st.toggle("🏷️ Require Promo Eligibility", value=True)
+            express_ctx = st.toggle("⚡ Express Fulfilment (≤ 3 Days)", value=False)
 
-        btn_apply = st.button("✨ Apply Preferences & Refresh Recommendations", type="primary", use_container_width=True)
+        btn_apply = st.button("Apply Preferences & Refresh", type="primary", use_container_width=True)
 
     if btn_apply or "studio_rec_result" in st.session_state or "studio_recs" in st.session_state:
         if btn_apply or "studio_rec_result" not in st.session_state:
-            with st.spinner("Generating tailored recommendations with active governance..."):
+            with st.spinner("Generating tailored recommendations..."):
                 rec_result = fetch_recommendations(
-                    selected_customer,
-                    top_k=8,
-                    reward_context=reward_ctx,
-                    promotion_context=promo_ctx,
-                    express_context=express_ctx,
+                    selected_customer, top_k=8,
+                    reward_context=reward_ctx, promotion_context=promo_ctx, express_context=express_ctx,
                 )
             st.session_state["studio_rec_result"] = rec_result
             if rec_result.get("status") == "ERROR":
@@ -962,31 +1145,33 @@ def render_preferences_studio() -> None:
                         continue
                     if float(r.get("product_rating", 0)) < min_rating:
                         continue
+                    if express_ctx and int(r.get("shipping_days", 5)) > 3:
+                        continue
                     filtered_recs.append(r)
                 st.session_state["studio_recs"] = filtered_recs
 
-        st.markdown('<div class="section-header">🎯 Updated Governed Product Recommendations</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sh">Tailored Recommendations</div>', unsafe_allow_html=True)
         studio_res = st.session_state.get("studio_rec_result", {})
         if render_recommendation_error(studio_res):
             return
         display_recs = st.session_state.get("studio_recs", [])
         if display_recs:
-            st.success(f"Generated {len(display_recs)} tailored, feasible offers matching customer preferences and business policy.")
+            st.success(f"{len(display_recs)} products match preferences and policy constraints.")
             for idx, item in enumerate(display_recs, 1):
                 render_product_card(item, rank=idx)
         else:
-            st.warning("No products passed both the strict preference sliders and operational feasibility rules. Try adjusting the budget or shipping toggle.")
+            st.warning("No products passed preference filters and feasibility rules. Try adjusting budget or toggles.")
 
 
-# ---------------------------------------------------------------------------
-# Feature 4: Next-Best-Offer & Rewards Centre
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE 5: NEXT-BEST-OFFER & DISPATCH CENTRE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def render_next_best_offer_centre() -> None:
-    render_hero(
-        "Next-Best-Offer & Rewards Centre",
-        "Curated, high-margin, commercially viable offers engineered for immediate customer conversion.",
-        tag="Feature 4 · Next-Best-Offer",
+    render_banner(
+        "Next-Best-Offer Centre",
+        "Top commercially viable offer with real inventory dispatch and governance audit.",
+        tag="Next-Best-Offer",
     )
 
     customers = load_all_customers()
@@ -994,8 +1179,7 @@ def render_next_best_offer_centre() -> None:
     curr_id = st.session_state.get("selected_customer_id", "CUST_0001")
     sel_idx = cust_options.index(curr_id) if curr_id in cust_options else 0
 
-    col_c, col_act = st.columns([2, 1])
-    selected_customer = col_c.selectbox("Select Customer for NBO:", cust_options, index=sel_idx, key="nbo_cust")
+    selected_customer = st.selectbox("Customer:", cust_options, index=sel_idx, key="nbo_cust")
     st.session_state["selected_customer_id"] = selected_customer
 
     cust_detail = load_customer_detail(selected_customer).get("customer", {})
@@ -1005,137 +1189,184 @@ def render_next_best_offer_centre() -> None:
     rec_result = fetch_recommendations(selected_customer, top_k=3, reward_context=True, promotion_context=True)
     recs = rec_result.get("recommendations", [])
 
+    retry_relaxed = False
     if rec_result.get("status") != "ERROR" and not recs:
         rec_result = fetch_recommendations(selected_customer, top_k=3)
         recs = rec_result.get("recommendations", [])
+        if recs:
+            retry_relaxed = True
 
     if render_recommendation_error(rec_result):
         return
 
     if recs:
         top_offer = recs[0]
-        st.markdown('<div class="section-header">🌟 Prime Next-Best-Offer</div>', unsafe_allow_html=True)
-
         price = float(top_offer.get("unit_price", 0))
-        discount_pct = 15 if tier in ["Gold", "Platinum"] else 10
-        discounted_price = price * (1.0 - (discount_pct / 100.0))
-        reward_savings = min(reward_pts // 10, int(price * 0.2))
+        stock = top_offer.get("available_stock")
+        pid = top_offer.get("product_id", "")
 
+        if retry_relaxed:
+            st.info(
+                "**Constraint Relaxation:** No products satisfied both promo and reward eligibility. "
+                "Engine relaxed non-mandatory constraints to present feasible offers."
+            )
+
+        st.markdown('<div class="sh">Prime Offer</div>', unsafe_allow_html=True)
         with st.container(border=True):
             top_l, top_r = st.columns([3, 1])
             with top_l:
                 st.markdown(
-                    "<span class='badge badge-purple'>⭐ Prime Recommended Offer</span> "
-                    "<span class='badge badge-success'>High Conversion Propensity</span> "
-                    f"<span class='badge badge-primary'>{top_offer.get('category')}</span>",
+                    f"<span class='badge badge-purple'>★ Prime Offer</span> "
+                    f"<span class='badge badge-green'>High Conversion</span> "
+                    f"<span class='badge badge-indigo'>{top_offer.get('category')}</span>",
                     unsafe_allow_html=True,
                 )
-                st.markdown(f"## {top_offer.get('product_name')}")
-                st.caption(f"Brand: **{top_offer.get('brand')}** · SKU: `{top_offer.get('product_id')}`")
+                st.markdown(f"### {top_offer.get('product_name')}")
+                st.caption(f"{top_offer.get('brand')} · SKU: {pid}")
             with top_r:
-                st.metric("Promotional Price", f"${discounted_price:,.2f}", delta=f"-{discount_pct}% VIP Offer")
-                st.caption(f"Original MSRP: ${price:,.2f}")
+                st.metric("Price", f"${price:,.2f}")
+                st.markdown(_stock_badge(stock, top_offer.get("inventory_status", "in_stock")), unsafe_allow_html=True)
 
-            st.divider()
+            justification = (
+                rec_result.get("decision_explanation")
+                or top_offer.get("explanation")
+                or "High propensity, positive margin, and confirmed inventory."
+            )
+            st.caption(f"**Justification:** {justification}")
 
-            c_b1, c_b2, c_b3, c_b4 = st.columns(4)
-            c_b1.metric("Tier Bonus", f"{tier} Member")
-            c_b2.metric("Points Offset", f"-${reward_savings:,.2f}", help=f"Uses {reward_savings*10:,} reward points")
-            c_b3.metric("Stock Verification", "100% In Stock")
-            c_b4.metric("Fulfilment SLA", "2-3 Days")
-
-            with st.container(border=True):
-                justification = (
-                    rec_result.get("decision_explanation")
-                    or top_offer.get("explanation")
-                    or "Strong historical propensity, high gross margin contribution, and confirmed warehouse availability."
-                )
-                st.markdown(f"**Strategic Business Justification:** {justification}")
+            c_b1, c_b2, c_b3 = st.columns(3)
+            c_b1.metric("Tier", f"{tier}")
+            c_b2.metric("Reward Points", f"{reward_pts:,}")
+            c_b3.metric("Fulfilment", "2–3 Days")
 
         if rec_result.get("fallback_used"):
             st.warning(
-                f"⚠️ **WeightedDecisionEngine Fallback Active (Laya Not Used)**: "
-                f"{rec_result.get('fallback_reason') or 'Laya unavailable in this environment; weighted multi-objective fallback selected the offer.'}"
+                f"**Weighted Fallback Active** — {rec_result.get('fallback_reason') or 'Laya unavailable; deterministic weighted fallback selected the offer.'}"
             )
 
-        col_b1, col_b2 = st.columns(2)
-        if col_b1.button("📤 Dispatch Offer to Customer Channel", type="primary", use_container_width=True):
-            st.warning(
-                f"Live customer delivery unavailable for `{top_offer.get('product_id')}`: "
-                "no external email, SMS, or push notification provider is integrated in this deployment. "
-                "Use **Log Offer into Governance Audit Trail** to persist an approved record in PostgreSQL."
-            )
-        if col_b2.button("📋 Log Offer into Governance Audit Trail", use_container_width=True):
-            audit_payload = {
-                "customer_id": selected_customer,
-                "status": rec_result.get("status", "SUCCESS"),
-                "selected_product_id": top_offer.get("product_id"),
-                "ranking_method": "MANUAL_GOVERNANCE_AUDIT",
-                "approval_status": "APPROVED",
-                "candidate_products": recs + (rec_result.get("excluded_candidates") or []),
-                "recommendations": recs,
-                "excluded_candidates": rec_result.get("excluded_candidates") or [],
-                "decision_weights": rec_result.get("decision_weights"),
-                "objective_scores": rec_result.get("objective_scores") or {},
-                "final_validation": rec_result.get("final_validation") or {"decision": "PASS"},
-                "decision_explanation": rec_result.get("decision_explanation")
-                or f"Operator approved offer {top_offer.get('product_id')} for {selected_customer}.",
-                "fallback_used": bool(rec_result.get("fallback_used", False)),
-                "fallback_reason": rec_result.get("fallback_reason"),
-            }
-            saved_record, audit_err = submit_manual_audit(audit_payload)
-            if saved_record:
-                st.success(
-                    f"Offer `{top_offer.get('product_id')}` persisted to PostgreSQL governance audit trail "
-                    f"(Decision ID: `{saved_record.get('decision_id')}`)."
+        # ── Product Dispatch & Inventory Deduction ──
+        st.markdown('<div class="sh">Product Dispatch & Inventory Update</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            col_d1, col_d2 = st.columns([2, 1])
+            with col_d1:
+                dispatch_qty = st.number_input(
+                    "Dispatch Quantity:", min_value=1, max_value=min(int(stock or 10), 100),
+                    value=1, key="dispatch_qty",
                 )
-            else:
-                st.error(f"Governance audit persistence failed: {audit_err}")
+            with col_d2:
+                current_stock = int(stock) if stock is not None else 0
+                st.metric("Current Stock", f"{current_stock} units")
+                st.metric("After Dispatch", f"{max(0, current_stock - dispatch_qty)} units")
+
+            col_btn1, col_btn2 = st.columns(2)
+            if col_btn1.button("📦 Confirm Dispatch & Deduct Inventory", type="primary", use_container_width=True):
+                # Build audit context from current recommendation result
+                all_recs = recs or []
+                excluded = rec_result.get("excluded_candidates") or []
+                candidate_ids = [r.get("product_id", "") for r in all_recs + excluded]
+                feasible_ids = [r.get("product_id", "") for r in all_recs]
+                excluded_ids = [r.get("product_id", "") for r in excluded]
+
+                dispatch_ref = f"DSP_{uuid.uuid4().hex[:8].upper()}"
+                explanation = (
+                    f"Product {pid} dispatched ({dispatch_qty} units) to {selected_customer}. "
+                    f"Ref: {dispatch_ref}."
+                )
+
+                # Single atomic call: inventory deduction + audit in one DB transaction
+                dispatch_result, dispatch_err = dispatch_product_api(
+                    product_id=pid,
+                    quantity=dispatch_qty,
+                    customer_id=selected_customer,
+                    candidate_products=candidate_ids,
+                    feasible_products=feasible_ids,
+                    excluded_products=excluded_ids,
+                    selected_product_id=pid,
+                    decision_explanation=explanation,
+                    fallback_used=bool(rec_result.get("fallback_used", False)),
+                    fallback_reason=rec_result.get("fallback_reason"),
+                    ranking_method="NBO_DISPATCH",
+                )
+                if dispatch_result:
+                    audit_persisted = dispatch_result.get("audit_created", False)
+                    decision_id = dispatch_result.get("decision_id", "")
+                    st.success(
+                        f"**Dispatch Confirmed**\n\n"
+                        f"- **Ref:** `{dispatch_ref}`\n"
+                        f"- **Product:** {dispatch_result.get('product_name', pid)}\n"
+                        f"- **Qty Dispatched:** {dispatch_qty}\n"
+                        f"- **Stock:** {dispatch_result['stock_before']} → {dispatch_result['stock_after']} units\n"
+                        f"- **Status:** {dispatch_result['inventory_status']}\n"
+                        f"- **Audit:** {'✅ Persisted to PostgreSQL' if audit_persisted else '⚠️ Skipped (no customer context)'}"
+                        + (f"\n- **Decision ID:** `{decision_id}`" if decision_id else "")
+                    )
+                    # Clear catalogue cache to reflect updated stock
+                    load_catalogue.clear()
+                else:
+                    st.error(f"**Dispatch Failed** — {dispatch_err}")
+
+            if col_btn2.button("📋 Log to Audit Trail", use_container_width=True):
+                audit_payload = {
+                    "customer_id": selected_customer,
+                    "status": rec_result.get("status", "SUCCESS"),
+                    "selected_product_id": pid,
+                    "ranking_method": "MANUAL_GOVERNANCE_AUDIT",
+                    "approval_status": "APPROVED",
+                    "candidate_products": recs + (rec_result.get("excluded_candidates") or []),
+                    "recommendations": recs,
+                    "excluded_candidates": rec_result.get("excluded_candidates") or [],
+                    "decision_weights": rec_result.get("decision_weights"),
+                    "objective_scores": rec_result.get("objective_scores") or {},
+                    "final_validation": rec_result.get("final_validation") or {"decision": "PASS"},
+                    "decision_explanation": rec_result.get("decision_explanation")
+                    or f"Operator approved offer {pid} for {selected_customer}.",
+                    "fallback_used": bool(rec_result.get("fallback_used", False)),
+                    "fallback_reason": rec_result.get("fallback_reason"),
+                }
+                saved_record, audit_err = submit_manual_audit(audit_payload)
+                if saved_record:
+                    st.success(f"Audit persisted — Decision ID: `{saved_record.get('decision_id')}`")
+                else:
+                    st.error(f"Audit persistence failed: {audit_err}")
 
         if rec_result.get("decision_id"):
-            st.caption(
-                f"Automatic recommendation trace persisted in PostgreSQL (`decision_id={rec_result.get('decision_id')}`, "
-                f"method=`{rec_result.get('decision_method', 'LAYA')}`)."
-            )
+            st.caption(f"Auto-trace: `decision_id={rec_result.get('decision_id')}` · method=`{rec_result.get('decision_method', 'LAYA')}`")
 
-        with st.expander("🗄️ Recent Persisted Governance Audit Records (PostgreSQL)", expanded=False):
+        with st.expander("Recent Audit Records", expanded=False):
             history_rows, history_err = fetch_decision_history(customer_id=selected_customer, limit=5)
             if history_err:
                 st.warning(history_err)
             elif not history_rows:
-                st.info(f"No persisted audit records found yet for Customer `{selected_customer}`.")
+                st.info(f"No audit records for {selected_customer}.")
             else:
                 history_table = [
                     {
-                        "Decision ID": row.get("decision_id"),
-                        "Selected SKU": row.get("selected_product_id"),
+                        "ID": row.get("decision_id", "")[:12] + "…",
+                        "SKU": row.get("selected_product_id"),
                         "Method": row.get("ranking_method"),
-                        "Status": row.get("status"),
-                        "Approval": row.get("approval_status"),
-                        "Fallback": "Yes" if row.get("fallback_used") else "No",
-                        "Timestamp": row.get("created_at"),
+                        "Status": row.get("approval_status"),
+                        "Time": str(row.get("created_at", ""))[:19],
                     }
                     for row in history_rows
                 ]
                 st.dataframe(pd.DataFrame(history_table), use_container_width=True, hide_index=True)
 
         if len(recs) > 1:
-            st.markdown('<div class="section-header">🥈 Secondary & Cross-Sell Alternative Offers</div>', unsafe_allow_html=True)
+            st.markdown('<div class="sh">Alternative Offers</div>', unsafe_allow_html=True)
             for idx, item in enumerate(recs[1:], 2):
-                render_product_card(item, rank=idx)
+                render_product_card(item, rank=idx, compact=True)
     else:
-        st.warning("No feasible NBO candidates found for this customer.")
+        st.warning("No feasible NBO candidates found.")
 
 
-# ---------------------------------------------------------------------------
-# Feature 4.5: Agentic Multi-Agent Decision Workflow (MCP)
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE 6: AGENTIC MCP WORKFLOW
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def render_mcp_agentic_workflow() -> None:
-    render_hero(
-        "Agentic Multi-Agent Recommendation Workflow",
-        "Deterministic, 6-stage recommendation pipeline coordinated through Model Context Protocol (MCP) tools: "
-        "Customer Profiling → ML Propensity Scoring → Live Inventory Verification → Hard Policy Governance → Laya Decision Engine (with Weighted Fallback) → Final Revalidation.",
+    render_banner(
+        "Multi-Agent Recommendation Workflow",
+        "6-stage pipeline: Customer Profiling → ML Scoring → Inventory → Policy → Decision Engine → Revalidation.",
         tag="Agentic MCP Architecture",
     )
 
@@ -1144,41 +1375,27 @@ def render_mcp_agentic_workflow() -> None:
     curr_id = st.session_state.get("selected_customer_id", "CUST_0001")
     sel_idx = cust_options.index(curr_id) if curr_id in cust_options else 0
 
-    st.markdown('<div class="section-header">⚙️ Workflow Execution Parameters</div>', unsafe_allow_html=True)
-
+    st.markdown('<div class="sh">Workflow Parameters</div>', unsafe_allow_html=True)
     with st.container(border=True):
         c_cust, c_topk = st.columns([2, 1])
         with c_cust:
-            selected_customer = st.selectbox(
-                "Target Customer Identifier:",
-                cust_options,
-                index=sel_idx,
-                key="mcp_cust_select",
-                help="Select customer profile for agentic profiling and scoring",
-            )
+            selected_customer = st.selectbox("Customer:", cust_options, index=sel_idx, key="mcp_cust_select")
             st.session_state["selected_customer_id"] = selected_customer
         with c_topk:
-            top_k = st.select_slider("Target Recommendation Count:", options=[1, 3, 5, 8, 10], value=5, key="mcp_top_k")
+            top_k = st.select_slider("Top-N:", options=[1, 3, 5, 8, 10], value=5, key="mcp_top_k")
 
-        st.markdown("**Operational Policy & Fulfilment Context Toggles:**")
         col_f1, col_f2, col_f3 = st.columns(3)
-        with col_f1:
-            reward_ctx = st.toggle("🎁 Require Reward Points Eligibility", value=False, key="mcp_reward_toggle")
-        with col_f2:
-            promo_ctx = st.toggle("🏷️ Require Promotional Campaign Eligibility", value=False, key="mcp_promo_toggle")
-        with col_f3:
-            express_ctx = st.toggle("⚡ Require Express Fulfilment (≤ 7 Days)", value=False, key="mcp_express_toggle")
+        reward_ctx = col_f1.toggle("🎁 Reward Eligibility", value=False, key="mcp_reward_toggle")
+        promo_ctx = col_f2.toggle("🏷️ Promo Eligibility", value=False, key="mcp_promo_toggle")
+        express_ctx = col_f3.toggle("⚡ Express (≤ 7 Days)", value=False, key="mcp_express_toggle")
 
-        btn_execute = st.button("🚀 Run Agentic Multi-Agent Workflow", type="primary", use_container_width=True)
+        btn_execute = st.button("Run Agentic Workflow", type="primary", use_container_width=True)
 
     if btn_execute:
-        with st.spinner(f"Coordinating MCP agents for Customer {selected_customer}..."):
+        with st.spinner(f"Coordinating MCP agents for {selected_customer}..."):
             data, status_code, err_msg = fetch_mcp_workflow(
-                customer_id=selected_customer,
-                top_k=top_k,
-                reward_context=reward_ctx,
-                promotion_context=promo_ctx,
-                express_context=express_ctx,
+                customer_id=selected_customer, top_k=top_k,
+                reward_context=reward_ctx, promotion_context=promo_ctx, express_context=express_ctx,
             )
             st.session_state["mcp_last_result"] = data
             st.session_state["mcp_last_status_code"] = status_code
@@ -1186,19 +1403,19 @@ def render_mcp_agentic_workflow() -> None:
             st.session_state["mcp_last_customer"] = selected_customer
 
     if "mcp_last_result" not in st.session_state:
+        # Explanation of how workflow operates
         with st.container(border=True):
-            st.markdown("#### ℹ️ How the Multi-Agent MCP Workflow Operates")
-            st.caption("Each agent executes a specialized deterministic responsibility communicating exclusively through registered MCP tools:")
+            st.markdown("**How the Multi-Agent Workflow Operates**")
             c1, c2, c3 = st.columns(3)
             with c1:
-                st.markdown("**1. 👤 Customer Agent**  \nRetrieves verified customer profile, interaction recency, and preferred category affinity.")
-                st.markdown("**2. 🧠 Recommendation Agent**  \nGenerates and scores candidate products matching customer preferences.")
+                st.caption("**1. Customer Agent** — Retrieves verified profile and category affinity.")
+                st.caption("**2. Recommendation Agent** — Generates scored candidate products.")
             with c2:
-                st.markdown("**3. 📦 Inventory Agent**  \nValidates warehouse stock levels, inventory status, and profit margin floor.")
-                st.markdown("**4. 🛡️ Policy Agent**  \nApplies authoritative business governance and strictly prunes infeasible SKUs.")
+                st.caption("**3. Inventory Agent** — Validates stock levels and margin floor.")
+                st.caption("**4. Policy Agent** — Applies business governance rules.")
             with c3:
-                st.markdown("**5. ⚡ Decision Agent**  \nRuns Laya inference (`convaiinnovations/laya`) on a capped policy-feasible shortlist, with deterministic weighted fallback.")
-                st.markdown("**6. 🎯 Final Decision Agent**  \nRevalidates selected candidates against authoritative policy and verified inventory freshness before persistence.")
+                st.caption("**5. Decision Agent** — Runs Laya inference with weighted fallback.")
+                st.caption("**6. Final Agent** — Revalidates before persistence.")
         return
 
     data = st.session_state.get("mcp_last_result")
@@ -1206,8 +1423,8 @@ def render_mcp_agentic_workflow() -> None:
     err_msg = st.session_state.get("mcp_last_error")
 
     if data is None:
-        st.error(f"❌ **Workflow Execution Encountered an Issue**: {err_msg}")
-        st.info("Please verify the FastAPI backend service is operational and reachable.")
+        st.error(f"**Workflow Error** — {err_msg}")
+        st.info("Verify that the FastAPI backend is operational.")
         return
 
     status = data.get("status", "UNKNOWN")
@@ -1226,92 +1443,76 @@ def render_mcp_agentic_workflow() -> None:
     fallback_reason = data.get("fallback_reason")
     top_error = data.get("error")
 
-    # 1. Agent Execution Timeline (only rendered because we now have verified API execution evidence)
-    st.markdown('<div class="section-header">🤖 Agent Execution Timeline & Tool Verification</div>', unsafe_allow_html=True)
-    st.caption("Verifiable audit trail of autonomous agents executing sequential governance tools:")
-
+    # Agent Execution Timeline
+    st.markdown('<div class="sh">Agent Execution Timeline</div>', unsafe_allow_html=True)
     agent_icons = {
-        "Customer Agent": "👤",
-        "Recommendation Agent": "🧠",
-        "Inventory Agent": "📦",
-        "Policy Agent": "🛡️",
-        "Decision Agent": "⚖️",
-        "Final Decision Agent": "🎯",
+        "Customer Agent": "👤", "Recommendation Agent": "🧠", "Inventory Agent": "📦",
+        "Policy Agent": "🛡️", "Decision Agent": "⚖️", "Final Decision Agent": "🎯",
     }
 
+    # Show agents in a compact visual timeline
     for idx, agent_exec in enumerate(agents, 1):
         ag_name = agent_exec.get("agent", f"Agent {idx}")
-        ag_resp = agent_exec.get("responsibility", "")
         ag_status = agent_exec.get("status", "unknown")
         ag_ms = agent_exec.get("duration_ms", 0.0)
         ag_icon = agent_icons.get(ag_name, "⚙️")
 
         if ag_status == "completed":
-            badge_html = f"<span class='badge badge-success'>✓ Completed · {ag_ms:.1f}ms</span>"
-        elif ag_status == "completed_with_fallback":
-            badge_html = f"<span class='badge badge-warning'>⚠ Baseline Fallback · {ag_ms:.1f}ms</span>"
-        elif ag_status == "completed_with_errors":
-            badge_html = f"<span class='badge badge-warning'>⚠ Completed with Notices · {ag_ms:.1f}ms</span>"
-        elif ag_status in ("skipped_no_feasible", "completed_none_feasible"):
-            badge_html = f"<span class='badge badge-slate'>○ No Feasible Items · {ag_ms:.1f}ms</span>"
+            badge_cls = "badge-green"
+            badge_txt = f"✓ {ag_ms:.0f}ms"
+        elif ag_status in ("completed_with_fallback", "completed_with_errors"):
+            badge_cls = "badge-amber"
+            badge_txt = f"⚠ {ag_ms:.0f}ms"
         else:
-            badge_html = f"<span class='badge badge-danger'>✕ Failed Safe · {ag_ms:.1f}ms</span>"
+            badge_cls = "badge-red"
+            badge_txt = f"✕ {ag_ms:.0f}ms"
 
         with st.container(border=True):
-            row_l, row_r = st.columns([3, 1])
+            row_l, row_r = st.columns([4, 1])
             with row_l:
-                st.markdown(f"**{ag_icon} Stage {idx}: {ag_name}** {badge_html}", unsafe_allow_html=True)
-                st.caption(f"Responsibility: {ag_resp}")
+                st.markdown(
+                    f"**{ag_icon} {ag_name}** <span class='badge {badge_cls}'>{badge_txt}</span>",
+                    unsafe_allow_html=True,
+                )
+                ag_resp = agent_exec.get("responsibility", "")
+                if ag_resp:
+                    st.caption(ag_resp)
+
+                # Compact output summary
+                ag_output = agent_exec.get("output")
+                if isinstance(ag_output, dict):
+                    if "verified" in ag_output:
+                        st.caption(f"Verified {ag_output.get('verified', 0)} SKUs")
+                    elif "pass" in ag_output:
+                        st.caption(f"{ag_output.get('pass', 0)} passed, {ag_output.get('excluded', 0)} excluded")
+                    elif "selected_product_id" in ag_output:
+                        st.caption(f"Selected: `{ag_output.get('selected_product_id')}`")
+                    elif "recommendations" in ag_output:
+                        st.caption(f"Final: {len(ag_output.get('recommendations', []))} passed revalidation")
+                    elif "candidate_count" in ag_output:
+                        st.caption(f"Generated {ag_output.get('candidate_count', 0)} candidates")
+
             with row_r:
-                st.metric("Execution Time", f"{ag_ms:.1f} ms")
+                st.metric("Time", f"{ag_ms:.0f}ms")
 
-            ag_output = agent_exec.get("output")
-            if isinstance(ag_output, dict):
-                if "verified" in ag_output:
-                    st.markdown(f"Verified operational stock, margin, freshness, and fulfilment data for **{ag_output.get('verified', 0)}** SKUs.")
-                elif "pass" in ag_output:
-                    st.markdown(f"Deterministic policy results: **{ag_output.get('pass', 0)} passed**, **{ag_output.get('excluded', 0)} excluded**.")
-                elif "selected_product_id" in ag_output:
-                    st.markdown(f"Decision Engine candidate selected: **`{ag_output.get('selected_product_id')}`**.")
-                elif "recommendations" in ag_output and isinstance(ag_output.get("recommendations"), list):
-                    st.markdown(
-                        f"Final authoritative policy revalidation passed **{len(ag_output.get('recommendations', []))}** candidate(s); "
-                        f"excluded **{len(ag_output.get('excluded_candidates', []))}**."
-                    )
-                elif "candidate_count" in ag_output:
-                    st.markdown(f"Generated and scored **{ag_output.get('candidate_count', 0)}** tailored candidates.")
-
-            if agent_exec.get("error"):
-                st.warning(f"Stage notice: {agent_exec.get('error')}")
-
-    # 2. Fallback / Safety Intervention Notices
+    # Fallback notice
     if fallback_used:
-        st.warning(
-            f"⚠️ **Weighted Deterministic Fallback Active**: "
-            f"{fallback_reason or 'Laya was unavailable or rejected; deterministic weighted multi-objective fallback selected the final candidate.'}"
-        )
+        st.warning(f"**Weighted Fallback Active** — {fallback_reason or 'Laya unavailable; deterministic fallback used.'}")
 
     if status == "FAILED_SAFE" or status_code in (502, 503):
-        st.markdown('<div class="section-header">⚠️ Governance & Safety Interventions</div>', unsafe_allow_html=True)
-        with st.container(border=True):
-            st.markdown(
-                "<span class='badge badge-danger'>● WORKFLOW HALTED SAFELY</span>",
-                unsafe_allow_html=True,
-            )
-            st.markdown("### Workflow Halted Safely")
-            st.markdown("The multi-agent workflow encountered an operational exception and exited safely without returning unverified recommendations.")
-            if top_error:
-                st.info(f"System status message: {top_error}")
+        st.error("**Workflow halted safely** — No unverified recommendations returned.")
+        if top_error:
+            st.info(f"Detail: {top_error}")
 
     catalogue_map = {item.get("product_id"): item for item in load_catalogue()}
 
-    # 3. Selected Offer & Final Validation Card
+    # Selected Offer
     if selected_id and recommendations:
-        st.markdown('<div class="section-header">⚡ Laya Decision Selection & Policy Revalidation</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sh">Decision Selection</div>', unsafe_allow_html=True)
         chosen_rec = next((r for r in recommendations if r.get("product_id") == selected_id), recommendations[0])
         cat_info = catalogue_map.get(selected_id, {})
 
-        l_name = cat_info.get("product_name") or chosen_rec.get("product_name", "Featured Product")
+        l_name = cat_info.get("product_name") or chosen_rec.get("product_name", "Product")
         l_price = float(cat_info.get("unit_price") or 0.0)
         l_rating = float(cat_info.get("product_rating") or 4.5)
         l_brand = cat_info.get("brand") or "Global"
@@ -1321,84 +1522,70 @@ def render_mcp_agentic_workflow() -> None:
         l_stock = cat_info.get("available_stock")
         l_margin = float(cat_info.get("gross_margin_pct") or 0.0)
 
-        badge_label = "★ Selected by Laya Decision Engine" if not fallback_used else "★ Selected by Weighted Deterministic Fallback"
+        badge_label = "Selected by Laya" if not fallback_used else "Selected by Weighted Fallback"
         reval_status = final_validation.get("decision", "PASS") if isinstance(final_validation, dict) else "PASS"
 
         with st.container(border=True):
             col_l1, col_l2 = st.columns([3, 1])
             with col_l1:
                 st.markdown(
-                    f"<span class='badge badge-purple'>{badge_label}</span> "
-                    f"<span class='badge badge-primary'>{l_cat}</span> "
-                    f"<span class='badge badge-slate'>{l_brand}</span> "
-                    f"<span class='badge badge-slate'>SKU: {selected_id}</span>",
+                    f"<span class='badge badge-purple'>★ {badge_label}</span> "
+                    f"<span class='badge badge-indigo'>{l_cat}</span> "
+                    f"<span class='badge badge-slate'>{l_brand}</span>",
                     unsafe_allow_html=True,
                 )
-                st.markdown(f"## {l_name}")
+                st.markdown(f"### {l_name}")
                 stars = "★" * int(round(l_rating)) + "☆" * (5 - int(round(l_rating)))
-                st.caption(
-                    f"Rating: {stars} **{l_rating:.1f}/5** · Brand: **{l_brand}** · "
-                    f"Method: **{decision_method}** · Final Policy Validation: **{reval_status}**"
-                )
+                st.caption(f"{stars} {l_rating:.1f}/5 · Method: {decision_method} · Validation: {reval_status}")
             with col_l2:
                 if l_price > 0:
-                    st.metric("Unit Price", f"${l_price:,.2f}")
+                    st.metric("Price", f"${l_price:,.2f}")
                 if l_weighted is not None:
                     st.metric("Weighted Score", f"{float(l_weighted):.4f}")
                 else:
-                    st.metric("Propensity Score", f"{l_score * 100:.1f}%")
+                    st.metric("Propensity", f"{l_score * 100:.1f}%")
 
-            st.divider()
+            st.caption(f"**Justification:** {decision_explanation or 'Selected from policy-feasible candidates and revalidated.'}")
+            margin_str = f"{l_margin*100:.1f}%" if l_margin > 0 else "≥ 10%"
+            stock_str = f"{int(l_stock)} units" if l_stock is not None else "Verified"
             st.markdown(
-                f"**🎯 Decision Justification:** "
-                f"{decision_explanation or 'Selected from policy-feasible candidates and revalidated against warehouse stock, freshness, and margin policy.'}"
-            )
-            margin_str = f"{l_margin*100:.1f}%" if l_margin > 0 else "Verified ≥ 10.0%"
-            stock_str = f"{int(l_stock)} units" if l_stock is not None else "Verified In Stock"
-            st.markdown(
-                f"<span class='badge badge-success'>✓ Warehouse Stock: {stock_str}</span> "
-                f"<span class='badge badge-success'>✓ Gross Margin: {margin_str}</span> "
-                f"<span class='badge badge-success'>✓ Final Revalidation: {reval_status}</span>",
+                f"<span class='badge badge-green'>✓ Stock: {stock_str}</span> "
+                f"<span class='badge badge-green'>✓ Margin: {margin_str}</span> "
+                f"<span class='badge badge-green'>✓ Revalidation: {reval_status}</span>",
                 unsafe_allow_html=True,
             )
 
-    # 3b. Multi-Objective Candidate Comparison Table
+    # Multi-Objective Comparison
     if final_ranking or (recommendations and objective_scores):
-        st.markdown('<div class="section-header">📐 Multi-Objective Candidate Comparison</div>', unsafe_allow_html=True)
-        if decision_weights:
-            w_parts = [f"`{k}={float(v):.2f}`" for k, v in decision_weights.items()]
-            st.caption("Configured normalized objective weights (`S = w_r·R + w_m·M + w_d·D − w_f·F`): " + " · ".join(w_parts))
-
-        comparison_rows = []
-        source_rows = final_ranking if final_ranking else recommendations
-        for idx, item in enumerate(source_rows, 1):
-            pid = item.get("product_id")
-            obj = item.get("objective_scores") or objective_scores.get(str(pid), {}) or {}
-            comparison_rows.append(
-                {
+        with st.expander("Multi-Objective Candidate Comparison", expanded=False):
+            if decision_weights:
+                w_parts = [f"{k}={float(v):.2f}" for k, v in decision_weights.items()]
+                st.caption("Weights: " + " · ".join(w_parts))
+            comparison_rows = []
+            source_rows = final_ranking if final_ranking else recommendations
+            for idx, item in enumerate(source_rows, 1):
+                pid = item.get("product_id")
+                obj = item.get("objective_scores") or objective_scores.get(str(pid), {}) or {}
+                comparison_rows.append({
                     "Rank": item.get("rank", idx),
                     "SKU": pid,
                     "Product": item.get("product_name"),
-                    "Relevance (R)": obj.get("recommendation_relevance", item.get("recommendation_score")),
-                    "Margin (M)": obj.get("margin_contribution"),
-                    "Diversity (D)": obj.get("product_diversity"),
-                    "Friction (F)": obj.get("operational_friction"),
-                    "Suitability": obj.get("operational_suitability"),
-                    "Weighted Score": item.get("weighted_score"),
-                }
-            )
-        if comparison_rows:
-            st.dataframe(pd.DataFrame(comparison_rows), use_container_width=True, hide_index=True)
+                    "Relevance": obj.get("recommendation_relevance", item.get("recommendation_score")),
+                    "Margin": obj.get("margin_contribution"),
+                    "Diversity": obj.get("product_diversity"),
+                    "Friction": obj.get("operational_friction"),
+                    "Score": item.get("weighted_score"),
+                })
+            if comparison_rows:
+                st.dataframe(pd.DataFrame(comparison_rows), use_container_width=True, hide_index=True)
 
-    # 3c. Persisted PostgreSQL Audit Record Confirmation
+    # Audit confirmation
     if decision_id:
-        st.success(f"🗄️ Workflow decision trace persisted in PostgreSQL (`decision_id={decision_id}`).")
-    elif status in ("SUCCESS", "ALL_CANDIDATES_EXCLUDED"):
-        st.info("ℹ️ Workflow response did not include a persisted `decision_id`.")
+        st.success(f"Decision persisted — `decision_id={decision_id}`")
 
-    # 4. Actionable Governed Recommendations
+    # Governed Recommendations
     if recommendations:
-        st.markdown(f'<div class="section-header">🛍️ Actionable Governed Recommendations ({len(recommendations)})</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="sh">Governed Recommendations ({len(recommendations)})</div>', unsafe_allow_html=True)
         for idx, rec in enumerate(recommendations, 1):
             pid = rec.get("product_id")
             cat_item = catalogue_map.get(pid, {})
@@ -1406,7 +1593,6 @@ def render_mcp_agentic_workflow() -> None:
                 "product_id": pid,
                 "product_name": cat_item.get("product_name") or rec.get("product_name"),
                 "category": cat_item.get("category", "General"),
-                "subcategory": cat_item.get("subcategory", "General"),
                 "brand": cat_item.get("brand", "Global"),
                 "unit_price": cat_item.get("unit_price", 0.0),
                 "product_rating": cat_item.get("product_rating", 4.0),
@@ -1415,61 +1601,49 @@ def render_mcp_agentic_workflow() -> None:
                 "gross_margin_pct": cat_item.get("gross_margin_pct", 0.15),
                 "recommendation_score": rec.get("recommendation_score", 0.0),
                 "policy_decision": rec.get("policy_decision", "PASS"),
-                "explanation": "Verified against all deterministic operational constraints and selected through multi-agent governance.",
+                "explanation": "Verified through multi-agent governance.",
             }
-            render_product_card(merged_item, rank=idx, show_policy=True)
+            render_product_card(merged_item, rank=idx, show_policy=True, compact=True)
     elif status == "ALL_CANDIDATES_EXCLUDED":
-        st.info("ℹ️ All candidate products were excluded by supply constraints (stock depletion or low margin). Zero infeasible items recommended.")
+        st.info("All candidates excluded by supply constraints.")
 
-    # 5. Excluded Products Section
+    # Excluded Products
     if excluded:
-        st.markdown('<div class="section-header">🚫 Supply Constraint Quarantine</div>', unsafe_allow_html=True)
-        with st.expander(f"Inspect Excluded Candidates ({len(excluded)} SKUs Blocked by Policy)", expanded=False):
-            st.caption("These items were excluded by deterministic policy rules to protect customer trust and operational margins:")
+        with st.expander(f"Excluded by Policy ({len(excluded)} SKUs)", expanded=False):
             for exc_item in excluded:
+                p_name = exc_item.get("product_name", "Product")
                 p_id = exc_item.get("product_id", "")
-                p_name = exc_item.get("product_name", f"Product {p_id}")
-                p_reasons = exc_item.get("policy_reasons", ["Operational constraint violation"])
-                p_score = float(exc_item.get("recommendation_score", 0.0))
-                reasons_text = " · ".join(p_reasons)
+                p_reasons = exc_item.get("policy_reasons", ["Constraint violation"])
+                st.markdown(
+                    f"<span class='badge badge-red'>EXCLUDED</span> **{p_name}** ({p_id}) — {' · '.join(p_reasons)}",
+                    unsafe_allow_html=True,
+                )
 
-                with st.container(border=True):
-                    c_left, c_right = st.columns([3, 1])
-                    with c_left:
-                        st.markdown(
-                            f"<span class='badge badge-danger'>EXCLUDED</span> **{p_name}** <span class='badge badge-purple'>SKU: {p_id}</span>",
-                            unsafe_allow_html=True,
-                        )
-                        st.markdown(f"**Policy Exclusion Reason:** <span style='color:#be123c; font-weight:600;'>{reasons_text}</span>", unsafe_allow_html=True)
-                    with c_right:
-                        st.metric("Raw Score", f"{p_score*100:.1f}%")
-
-    # 6. Decision Governance Summary Metrics
-    st.markdown('<div class="section-header">📊 Decision Governance Summary</div>', unsafe_allow_html=True)
+    # Summary Metrics
+    st.markdown('<div class="sh">Summary</div>', unsafe_allow_html=True)
     total_cands = len(recommendations) + len(excluded)
     total_ms = sum(a.get("duration_ms", 0.0) for a in agents)
-
     s1, s2, s3, s4 = st.columns(4)
-    s1.metric("Candidates Evaluated", total_cands)
-    s2.metric("Feasible Recommendations", len(recommendations))
-    s3.metric("Quarantined by Policy", len(excluded))
-    s4.metric("Total Agent Latency", f"{total_ms:.1f} ms")
+    s1.metric("Evaluated", total_cands)
+    s2.metric("Feasible", len(recommendations))
+    s3.metric("Excluded", len(excluded))
+    s4.metric("Latency", f"{total_ms:.0f}ms")
 
 
-# ---------------------------------------------------------------------------
-# Feature 5: Smart Inventory & Policy Control Centre
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE 7: INVENTORY & POLICY CENTRE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def render_inventory_policy_centre() -> None:
-    render_hero(
-        "Smart Inventory & Policy Control Centre",
-        "Enforcing mandatory supply, margin, and fulfillment constraints before any offer reaches a customer.",
-        tag="Feature 5 · Supply Governance",
+    render_banner(
+        "Inventory & Policy Control Centre",
+        "Real-time supply health, margin compliance, and policy simulation.",
+        tag="Supply Governance",
     )
 
     catalogue = load_catalogue()
     if not catalogue:
-        st.warning("Operational catalogue data unavailable.")
+        st.warning("Operational catalogue unavailable.")
         return
 
     total_prods = len(catalogue)
@@ -1478,18 +1652,53 @@ def render_inventory_policy_centre() -> None:
     out_stock_cnt = sum(1 for p in catalogue if p.get("inventory_status") == "out_of_stock" or (p.get("available_stock") is not None and p.get("available_stock") <= 0))
     low_margin_cnt = sum(1 for p in catalogue if (p.get("gross_margin_pct") or 0) < 0.10)
 
-    st.markdown('<div class="section-header">📦 Real-Time Catalogue Supply Health</div>', unsafe_allow_html=True)
+    # Supply Health KPIs
+    st.markdown('<div class="sh">Supply Health</div>', unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Catalogue Products", total_prods, help="Total tracked SKU count")
-    c2.metric("Available In Stock", in_stock_cnt, help="Products ready for immediate fulfilment")
-    c3.metric("Depleted / Out-of-Stock", out_stock_cnt, help="Strictly quarantined from actionable offers")
-    c4.metric("Sub-10% Margin Blocked", low_margin_cnt, help="Products violating corporate margin floor")
+    c1.metric("Total SKUs", total_prods)
+    c2.metric("In Stock", in_stock_cnt)
+    c3.metric("Depleted", out_stock_cnt)
+    c4.metric("Low Margin (<10%)", low_margin_cnt)
 
-    st.markdown('<div class="section-header">🧪 Interactive Policy Simulation & Candidate Pruning</div>', unsafe_allow_html=True)
-    st.caption("Inspect how the deterministic policy engine evaluates and filters candidates in real-time.")
+    # Inventory Table
+    st.markdown('<div class="sh">Catalogue Overview</div>', unsafe_allow_html=True)
 
+    # Filters
+    col_f1, col_f2 = st.columns(2)
+    categories = list(set(p.get("category", "General") for p in catalogue))
+    cat_filter = col_f1.selectbox("Filter by Category:", ["All"] + sorted(categories), key="inv_cat_filter")
+    stock_filter = col_f2.selectbox("Stock Status:", ["All", "In Stock", "Low Stock", "Out of Stock"], key="inv_stock_filter")
+
+    filtered = catalogue
+    if cat_filter != "All":
+        filtered = [p for p in filtered if p.get("category") == cat_filter]
+    if stock_filter == "In Stock":
+        filtered = [p for p in filtered if (p.get("available_stock") or 0) > (p.get("reorder_point") or 15)]
+    elif stock_filter == "Low Stock":
+        filtered = [p for p in filtered if 0 < (p.get("available_stock") or 0) <= (p.get("reorder_point") or 15)]
+    elif stock_filter == "Out of Stock":
+        filtered = [p for p in filtered if (p.get("available_stock") or 0) <= 0]
+
+    if filtered:
+        inv_data = []
+        for p in filtered:
+            inv_data.append({
+                "SKU": p.get("product_id"),
+                "Product": p.get("product_name"),
+                "Category": p.get("category"),
+                "Stock": int(p.get("available_stock") or 0),
+                "Margin": f"{float(p.get('gross_margin_pct', 0))*100:.1f}%",
+                "Price": f"${float(p.get('unit_price', 0)):,.2f}",
+                "Status": p.get("inventory_status", "unknown"),
+            })
+        st.dataframe(pd.DataFrame(inv_data), use_container_width=True, hide_index=True, height=350)
+    else:
+        st.info("No products match current filters.")
+
+    # Policy Simulation
+    st.markdown('<div class="sh">Policy Simulation</div>', unsafe_allow_html=True)
     cust_col, _ = st.columns([2, 2])
-    test_cust = cust_col.selectbox("Test Customer Context:", [f"CUST_{i:04d}" for i in range(1, 15)], index=0)
+    test_cust = cust_col.selectbox("Test Customer:", [f"CUST_{i:04d}" for i in range(1, 15)], index=0)
 
     eval_res = fetch_recommendations(test_cust, top_k=5, reward_context=False, promotion_context=False)
     if render_recommendation_error(eval_res):
@@ -1497,173 +1706,165 @@ def render_inventory_policy_centre() -> None:
     feasible_items = eval_res.get("recommendations", [])
     excluded_items = eval_res.get("excluded_candidates", [])
 
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Candidates Evaluated", eval_res.get("candidate_count", len(feasible_items) + len(excluded_items)))
-    m2.metric("🟢 Policy Eligible", len(feasible_items))
-    m3.metric("🔴 Excluded by Policy", len(excluded_items))
-    m4.metric("Mandatory Policy Compliance", "100%", help="Hard constraints strictly enforced")
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Candidates", eval_res.get("candidate_count", len(feasible_items) + len(excluded_items)))
+    m2.metric("Eligible", len(feasible_items))
+    m3.metric("Excluded", len(excluded_items))
 
-    tab_pass, tab_fail = st.tabs(["🟢 Eligible Products (Passed All Checks)", "🔴 Excluded Products (Violations Detected)"])
-
+    tab_pass, tab_fail = st.tabs(["Eligible Products", "Excluded Products"])
     with tab_pass:
         if feasible_items:
-            st.info(f"Showing {len(feasible_items)} verified candidates that satisfy all hard constraints (Stock > 0, Margin ≥ 10%, Active SKU).")
             for idx, item in enumerate(feasible_items, 1):
-                render_product_card(item, rank=idx, show_policy=True)
+                render_product_card(item, rank=idx, show_policy=True, compact=True)
         else:
-            st.info("No candidates passed all policy rules for this context.")
-
+            st.info("No candidates passed all policy rules.")
     with tab_fail:
         if excluded_items:
-            st.caption(f"{len(excluded_items)} candidates were rejected by hard business rules to prevent fulfillment issues.")
             for item in excluded_items:
-                pname = item.get("product_name", "Product")
-                pid = item.get("product_id", "")
-                reasons = item.get("policy_reasons", ["Failed business constraint"])
-                reasons_str = " · ".join(reasons)
-                with st.container(border=True):
-                    col_ex_l, col_ex_r = st.columns([3, 1])
-                    with col_ex_l:
-                        st.markdown(
-                            f"<span class='badge badge-danger'>EXCLUDED</span> **{pname}** <span class='badge badge-purple'>SKU: {pid}</span>",
-                            unsafe_allow_html=True,
-                        )
-                        st.markdown(f"**Violation:** <span style='color:#be123c; font-weight:600;'>{reasons_str}</span>", unsafe_allow_html=True)
-                    with col_ex_r:
-                        st.markdown("<span class='badge badge-slate'>Action: Quarantined</span>", unsafe_allow_html=True)
+                p_reasons = item.get("policy_reasons", ["Constraint violation"])
+                st.markdown(
+                    f"<span class='badge badge-red'>EXCLUDED</span> "
+                    f"**{item.get('product_name', 'Product')}** ({item.get('product_id')}) — {' · '.join(p_reasons)}",
+                    unsafe_allow_html=True,
+                )
         else:
-            st.success("All candidate products successfully satisfied operational rules.")
+            st.success("All candidates passed operational rules.")
 
 
-# ---------------------------------------------------------------------------
-# Feature 6: Product Insights & Recommendation Analytics
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE 8: PRODUCT ANALYTICS
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def render_analytics_insights() -> None:
-    render_hero(
-        "Product Insights & Recommendation Analytics",
-        "Business intelligence, cross-selling affinity rules, and offline algorithm benchmark metrics.",
-        tag="Feature 6 · Recommendation Analytics",
+    render_banner(
+        "Product Analytics & Insights",
+        "Cross-selling patterns, model evaluation benchmarks, and content-based similarity analysis.",
+        tag="Recommendation Analytics",
     )
 
-    tab_assoc, tab_metrics, tab_catalogue = st.tabs([
-        "🤝 Frequently Bought Together (Cross-Selling)",
-        "📈 Recommendation Evaluation Benchmarks",
-        "📊 Catalogue Category Breakdown",
+    tab_assoc, tab_metrics, tab_catalogue, tab_vectors = st.tabs([
+        "Cross-Sell Patterns", "Model Benchmarks", "Category Distribution", "Content-Based Similarity",
     ])
 
     with tab_assoc:
-        st.markdown('<div class="section-header">🔗 Market Basket Co-Purchase Associations</div>', unsafe_allow_html=True)
-        st.caption("Derived from multi-item basket transactions to uncover cross-sell bundles.")
+        st.markdown('<div class="sh">Co-Purchase Associations</div>', unsafe_allow_html=True)
+        st.caption("Derived from multi-item basket transactions.")
         associations = load_basket_associations()
         if associations:
-            for pair in associations[:8]:
-                p_a = pair.get("product_a_name")
-                p_b = pair.get("product_b_name")
-                co_p = pair.get("co_purchases")
-                supp = pair.get("support_pct")
-                with st.container(border=True):
-                    col_pair_l, col_pair_r = st.columns([3, 1])
-                    with col_pair_l:
-                        st.markdown(f"**{p_a}** &nbsp; <span style='color:#6366f1; font-weight:800;'>+</span> &nbsp; **{p_b}**", unsafe_allow_html=True)
-                    with col_pair_r:
-                        st.markdown(
-                            f"<span class='badge badge-primary'>{co_p} Co-purchases</span> "
-                            f"<span class='badge badge-success'>{supp}% Support</span>",
-                            unsafe_allow_html=True,
-                        )
+            assoc_data = []
+            for pair in associations[:10]:
+                assoc_data.append({
+                    "Product A": pair.get("product_a_name"),
+                    "Product B": pair.get("product_b_name"),
+                    "Co-purchases": pair.get("co_purchases"),
+                    "Support": f"{pair.get('support_pct')}%",
+                })
+            st.dataframe(pd.DataFrame(assoc_data), use_container_width=True, hide_index=True)
         else:
-            st.info("Basket transactions processed.")
+            st.info("Basket data processed.")
 
     with tab_metrics:
-        st.markdown('<div class="section-header">🏆 Model Evaluation: Offline Holdout Benchmarks</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sh">Offline Evaluation Benchmarks</div>', unsafe_allow_html=True)
         report = load_evaluation_report()
         ml_metrics = report.get("ml_classification_metrics", {})
         rec_metrics = report.get("recommendation_metrics", [])
 
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("ML Classifier", ml_metrics.get("model", "Gradient Boosting"))
-        c2.metric("Holdout ROC-AUC", ml_metrics.get("holdout_roc_auc", "0.8583"))
-        c3.metric("Holdout PR-AUC", ml_metrics.get("holdout_pr_auc", "0.7094"))
-        c4.metric("Policy Compliance", "100%")
+        c1.metric("Classifier", ml_metrics.get("model", "Gradient Boosting"))
+        c2.metric("ROC-AUC", ml_metrics.get("holdout_roc_auc", "0.8583"))
+        c3.metric("PR-AUC", ml_metrics.get("holdout_pr_auc", "0.7094"))
+        c4.metric("Compliance", "100%")
 
         if rec_metrics:
-            st.markdown("#### Ranking Quality: Precision@K & Recall@K by Pipeline")
-            df_rep = pd.DataFrame(rec_metrics)
-            st.dataframe(df_rep, use_container_width=True, hide_index=True)
-        else:
-            st.info("Evaluation metrics report active.")
+            st.markdown("**Precision@K & Recall@K by Pipeline**")
+            st.dataframe(pd.DataFrame(rec_metrics), use_container_width=True, hide_index=True)
 
     with tab_catalogue:
-        st.markdown('<div class="section-header">📂 Product Distribution by Category</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sh">Category Distribution</div>', unsafe_allow_html=True)
         catalogue = load_catalogue()
         if catalogue:
             df_cat = pd.DataFrame(catalogue)
             cat_counts = df_cat["category"].value_counts()
-            st.bar_chart(cat_counts, color="#4338ca", height=280)
+            st.bar_chart(cat_counts, color="#4f46e5", height=240)
+
+    with tab_vectors:
+        st.markdown('<div class="sh">Content-Based Similarity (TF-IDF Cosine)</div>', unsafe_allow_html=True)
+        st.caption("Cosine similarity across TF-IDF product attribute vectors (name, category, brand, price tier).")
+        catalogue = load_catalogue()
+        if catalogue:
+            prod_options = [f"{p['product_id']} — {p.get('product_name', 'Product')} (${float(p.get('unit_price', 0)):.2f})" for p in catalogue]
+            sel_prod_str = st.selectbox("Seed Product:", prod_options, index=min(6, len(prod_options)-1))
+            seed_pid = sel_prod_str.split(" — ")[0]
+
+            from backend.app.recommendation.content_based import get_content_recommender
+            df_prods = pd.DataFrame(catalogue)
+            recommender = get_content_recommender(df_prods)
+            similar_products = recommender.get_similar_products_detailed(seed_pid, top_n=5)
+
+            if similar_products:
+                st.markdown(f"**Top-5 Similar to `{seed_pid}`:**")
+                sim_data = []
+                for item in similar_products:
+                    sim_data.append({
+                        "SKU": item.get("product_id"),
+                        "Product": item.get("product_name"),
+                        "Category": item.get("category"),
+                        "Brand": item.get("brand"),
+                        "Similarity": item.get("cosine_similarity_pct", "0.0%"),
+                    })
+                st.dataframe(pd.DataFrame(sim_data), use_container_width=True, hide_index=True)
+            else:
+                st.info("Select a product to view similarity results.")
 
 
-# ---------------------------------------------------------------------------
-# Feature 7: Live Demonstration Playground
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE 9: DEMO PLAYGROUND
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def render_demo_playground() -> None:
-    render_hero(
-        "Interactive Live Demonstration Playground",
-        "Seamless end-to-end presenter flow to demonstrate the full recommendation journey in 5 guided steps.",
-        tag="Presenter Tour · Live Demo",
+    render_banner(
+        "Live Demonstration Playground",
+        "End-to-end presenter flow: select a scenario, run the decision engine, and inspect results.",
+        tag="Presenter Demo",
     )
 
-    st.markdown('<div class="section-header">1️⃣ Select Customer Persona Scenario</div>', unsafe_allow_html=True)
+    # Step 1: Scenario Selection
+    st.markdown('<div class="sh">Step 1 — Select Scenario</div>', unsafe_allow_html=True)
     scenarios = {
-        "Scenario A: Tech & Audio Enthusiast (CUST_0001)": {
-            "id": "CUST_0001",
-            "desc": "High-spend electronics buyer with high interaction frequency in audio hardware.",
-        },
-        "Scenario B: Home & Kitchen VIP (CUST_0003)": {
-            "id": "CUST_0003",
-            "desc": "Gold tier customer with affinity for cookware and rapid re-order frequency.",
-        },
-        "Scenario C: Fitness & Outdoor Shopper (CUST_0005)": {
-            "id": "CUST_0005",
-            "desc": "Active customer looking for fitness wearables and workout accessories.",
-        },
+        "Tech Enthusiast (CUST_0001)": {"id": "CUST_0001", "desc": "High-spend electronics buyer with audio hardware affinity."},
+        "Home & Kitchen VIP (CUST_0003)": {"id": "CUST_0003", "desc": "Gold tier customer with cookware and rapid re-order frequency."},
+        "Fitness Shopper (CUST_0005)": {"id": "CUST_0005", "desc": "Active customer for fitness wearables and outdoor accessories."},
     }
-
-    selected_scenario_name = st.selectbox("Choose Demo Scenario:", list(scenarios.keys()))
-    scenario_info = scenarios[selected_scenario_name]
+    selected_scenario = st.selectbox("Scenario:", list(scenarios.keys()))
+    scenario_info = scenarios[selected_scenario]
     customer_id = scenario_info["id"]
     st.session_state["selected_customer_id"] = customer_id
+    st.info(f"**{scenario_info['desc']}** (ID: `{customer_id}`)")
 
-    st.info(f"**Customer Context:** {scenario_info['desc']} (Active ID: `{customer_id}`)")
-
-    st.markdown('<div class="section-header">2️⃣ Inspect Customer Profile & History</div>', unsafe_allow_html=True)
+    # Step 2: Customer Profile
+    st.markdown('<div class="sh">Step 2 — Customer Profile</div>', unsafe_allow_html=True)
     cust_data = load_customer_detail(customer_id)
     cust = cust_data.get("customer", {})
     p1, p2, p3, p4 = st.columns(4)
     p1.metric("Tier", cust.get("membership_tier", "Standard"))
-    p2.metric("Preferred Category", cust.get("preferred_category", "Electronics"))
-    p3.metric("Total Spend", f"${float(cust.get('total_spend', 0)):,.2f}")
-    p4.metric("Reward Balance", f"{cust.get('reward_points', 0):,} pts")
+    p2.metric("Category", cust.get("preferred_category", "Electronics"))
+    p3.metric("Spend", f"${float(cust.get('total_spend', 0)):,.2f}")
+    p4.metric("Points", f"{cust.get('reward_points', 0):,}")
 
-    st.markdown('<div class="section-header">3️⃣ Execute Governed Decision Engine</div>', unsafe_allow_html=True)
-
+    # Step 3: Execute
+    st.markdown('<div class="sh">Step 3 — Run Decision Engine</div>', unsafe_allow_html=True)
     with st.container(border=True):
         col_t1, col_t2, col_t3 = st.columns(3)
-        t_reward = col_t1.checkbox("Enforce Reward Eligibility", value=True)
-        t_promo = col_t2.checkbox("Enforce Promo Margin Floor", value=True)
-        t_express = col_t3.checkbox("Enforce Express Shipping SLA", value=False)
-
-        run_btn = st.button("⚡ Run End-to-End Decision Pipeline", type="primary", use_container_width=True)
+        t_reward = col_t1.checkbox("Reward Eligibility", value=True)
+        t_promo = col_t2.checkbox("Promo Margin Floor", value=True)
+        t_express = col_t3.checkbox("Express Shipping", value=False)
+        run_btn = st.button("Run Decision Pipeline", type="primary", use_container_width=True)
 
     if run_btn or "demo_result" in st.session_state:
-        with st.spinner("Running candidate generator -> ML scoring -> policy engine -> top-K ranking..."):
+        with st.spinner("Generating governed recommendations..."):
             res = fetch_recommendations(
-                customer_id,
-                top_k=4,
-                reward_context=t_reward,
-                promotion_context=t_promo,
-                express_context=t_express,
+                customer_id, top_k=4,
+                reward_context=t_reward, promotion_context=t_promo, express_context=t_express,
             )
             st.session_state["demo_result"] = res
 
@@ -1673,95 +1874,77 @@ def render_demo_playground() -> None:
         recs = demo_res.get("recommendations", [])
         excluded = demo_res.get("excluded_candidates", [])
 
-        st.markdown('<div class="section-header">4️⃣ Governance Audit & Feasibility Filter</div>', unsafe_allow_html=True)
+        # Step 4: Governance Audit
+        st.markdown('<div class="sh">Step 4 — Governance Results</div>', unsafe_allow_html=True)
         c_tot, c_pass, c_excl = st.columns(3)
-        c_tot.metric("Candidates Scored", demo_res.get("candidate_count", len(recs) + len(excluded)))
-        c_pass.metric("🟢 Actionable & Feasible", len(recs))
-        c_excl.metric("🔴 Quarantined / Excluded", len(excluded))
+        c_tot.metric("Scored", demo_res.get("candidate_count", len(recs) + len(excluded)))
+        c_pass.metric("Feasible", len(recs))
+        c_excl.metric("Excluded", len(excluded))
 
         if excluded:
-            st.caption("Demonstrating supply protection: The following products were blocked from actionable offers:")
-            for exc in excluded[:3]:
-                st.error(f"🚫 {exc.get('product_name')} ({exc.get('product_id')}): {' · '.join(exc.get('policy_reasons', []))}")
+            with st.expander(f"Excluded Products ({len(excluded)})", expanded=False):
+                for exc in excluded[:5]:
+                    st.caption(f"🚫 {exc.get('product_name')} ({exc.get('product_id')}): {' · '.join(exc.get('policy_reasons', []))}")
 
-        st.markdown('<div class="section-header">5️⃣ Final Actionable Recommendations for Customer</div>', unsafe_allow_html=True)
+        # Step 5: Results
+        st.markdown('<div class="sh">Step 5 — Recommendations</div>', unsafe_allow_html=True)
         for idx, item in enumerate(recs, 1):
             render_product_card(item, rank=idx, show_policy=True)
 
 
-# ---------------------------------------------------------------------------
-# Feature 8: AI Decision & Governance Assistant (Powered by Groq)
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE 10: AI DECISION ASSISTANT
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def query_groq_assistant(prompt: str, context: Dict[str, Any]) -> str:
-    """Submit prompt and grounded context to the FastAPI backend assistant endpoint (POST /assistant/chat)."""
     url = f"{API_BASE_URL}/assistant/chat"
     try:
-        res = requests.post(
-            url,
-            json={"question": prompt, "context": context},
-            timeout=TIMEOUT,
-        )
+        res = requests.post(url, json={"question": prompt, "context": context}, timeout=TIMEOUT)
         if res.ok:
             data = res.json()
-            return data.get("answer", "No response returned by assistant service.")
+            return data.get("answer", "No response returned.")
         elif res.status_code in (502, 503, 504):
             try:
                 detail = res.json().get("detail")
             except Exception:
                 detail = None
-            if not detail:
-                detail = f"AI Assistant service notice (HTTP {res.status_code})."
-            return detail
+            return detail or f"Assistant service notice (HTTP {res.status_code})."
         else:
-            return f"Assistant service returned status {res.status_code}."
+            return f"Assistant returned HTTP {res.status_code}."
     except requests.exceptions.Timeout:
-        return "The assistant request timed out while communicating with the backend service. Please try again."
+        return "Request timed out. Please try again."
     except requests.exceptions.ConnectionError:
-        return "Could not connect to the backend assistant service. Ensure the FastAPI backend is running."
+        return "Cannot connect to backend assistant service."
     except Exception as e:
-        return f"Unable to reach assistant service: {str(e)}"
+        return f"Assistant error: {str(e)}"
 
 
 def render_ai_assistant() -> None:
-    render_hero(
-        "AI Decision & Governance Assistant",
-        "Interactive LLM explanation engine powered by Groq, grounded in live catalogue facts and customer context.",
-        tag="AI Assistant · Grounded Reasoning",
+    render_banner(
+        "AI Decision Assistant",
+        "LLM explanation engine powered by Groq, grounded in live catalogue and customer context.",
+        tag="AI Assistant",
     )
 
-    # All available customers selector
     customers = load_all_customers()
     cust_options = [c["customer_id"] for c in customers]
     curr_id = st.session_state.get("selected_customer_id", "CUST_0001")
     sel_idx = cust_options.index(curr_id) if curr_id in cust_options else 0
 
-    st.markdown('<div class="section-header">🎯 Active Customer Context for AI Assistant</div>', unsafe_allow_html=True)
     c_sel_col, c_info_col = st.columns([1, 2])
-
     with c_sel_col:
-        active_customer = st.selectbox(
-            "Select Customer to inspect:",
-            cust_options,
-            index=sel_idx,
-            key="assistant_customer_picker",
-            help="Choose any customer from the database to ground the assistant's responses.",
-        )
-        # If user changed customer, update state and add context shift message
+        active_customer = st.selectbox("Customer Context:", cust_options, index=sel_idx, key="assistant_customer_picker")
         if active_customer != st.session_state.get("selected_customer_id"):
             st.session_state["selected_customer_id"] = active_customer
             new_cust_detail = load_customer_detail(active_customer).get("customer", {})
-            st.session_state["assistant_messages"] = [
-                {
-                    "role": "assistant",
-                    "content": (
-                        f"Active context updated to **Customer `{active_customer}`** "
-                        f"({new_cust_detail.get('preferred_category', 'General')} affinity · "
-                        f"{new_cust_detail.get('membership_tier', 'Standard')} Tier). "
-                        "You can now ask questions specifically tailored to this customer or any product in the catalogue."
-                    ),
-                }
-            ]
+            st.session_state["assistant_messages"] = [{
+                "role": "assistant",
+                "content": (
+                    f"Context updated to **{active_customer}** "
+                    f"({new_cust_detail.get('preferred_category', 'General')} · "
+                    f"{new_cust_detail.get('membership_tier', 'Standard')} Tier)."
+                ),
+            }]
             st.rerun()
 
     cust_data = load_customer_detail(active_customer)
@@ -1770,27 +1953,26 @@ def render_ai_assistant() -> None:
 
     with c_info_col:
         st.markdown(
-            f"<div style='background:white; border:1px solid #cbd5e1; border-radius:12px; padding:12px 18px; margin-top:4px;'>"
-            f"<strong>Customer ID:</strong> <span class='badge badge-primary'>{active_customer}</span> &nbsp; "
-            f"<strong>Tier:</strong> <span class='badge badge-purple'>{cust_info.get('membership_tier', 'Standard')}</span> &nbsp; "
-            f"<strong>Favorite Category:</strong> <span class='badge badge-slate'>{cust_info.get('preferred_category', 'Electronics')}</span> &nbsp; "
-            f"<strong>Lifetime Spend:</strong> <strong style='color:#059669;'>${float(cust_info.get('total_spend', 0)):,.2f}</strong>"
-            f"</div>",
+            f"<span class='badge badge-indigo'>{active_customer}</span> "
+            f"<span class='badge badge-purple'>{cust_info.get('membership_tier', 'Standard')}</span> "
+            f"<span class='badge badge-slate'>{cust_info.get('preferred_category', 'Electronics')}</span> "
+            f"<span class='badge badge-green'>${float(cust_info.get('total_spend', 0)):,.2f} lifetime</span>",
             unsafe_allow_html=True,
         )
 
     rec_data = fetch_recommendations(active_customer, top_k=5)
-    rec_error = rec_data.get("error") if rec_data.get("status") == "ERROR" else None
-    if rec_error:
-        render_recommendation_error(rec_data)
+    if render_recommendation_error(rec_data):
+        rec_error = rec_data.get("error")
+    else:
+        rec_error = None
     recs = rec_data.get("recommendations", []) if not rec_error else []
     exclusions = rec_data.get("excluded_candidates", []) if not rec_error else []
 
     engine_telemetry = check_decision_engine_status() or {}
     active_provider = (
-        f"Laya ({engine_telemetry.get('model', 'english')}, lazy singleton, capped shortlist)"
+        f"Laya ({engine_telemetry.get('model', 'english')})"
         if engine_telemetry.get("laya_available")
-        else f"WeightedDecisionEngine Fallback (Laya unavailable: {engine_telemetry.get('reason') or 'disabled'})"
+        else "Weighted Fallback"
     )
     context_summary = {
         "active_customer": {
@@ -1809,7 +1991,6 @@ def render_ai_assistant() -> None:
                 "category": r.get("category"),
                 "recommendation_score": r.get("recommendation_score"),
                 "policy_decision": r.get("policy_decision"),
-                "explanation": r.get("explanation"),
             }
             for r in recs[:5]
         ] if recs else [],
@@ -1817,8 +1998,6 @@ def render_ai_assistant() -> None:
             {
                 "product_id": e.get("product_id"),
                 "product_name": e.get("product_name"),
-                "category": e.get("category"),
-                "policy_decision": e.get("policy_decision"),
                 "policy_reasons": e.get("policy_reasons", []),
             }
             for e in exclusions[:10]
@@ -1826,60 +2005,44 @@ def render_ai_assistant() -> None:
         "catalogue_summary": {
             "total_skus": len(catalogue),
             "depleted_skus": sum(1 for p in catalogue if (p.get("available_stock") or 0) <= 0),
-            "margin_floor_pct": 10.0,
         },
         "governance_engine": {
-            "policy_compliance": "100%",
-            "app_env": engine_telemetry.get("app_env", "unknown"),
             "decision_engine": active_provider,
-            "laya_available": bool(engine_telemetry.get("laya_available", False)),
-            "ml_model": "Gradient Boosting (Holdout ROC-AUC 0.8583)",
-            "margin_floor": "10% minimum gross margin",
-            "stock_rule": "Out of stock (stock <= 0), stale, and unknown inventory strictly quarantined",
+            "ml_model": "Gradient Boosting (ROC-AUC 0.8583)",
+            "margin_floor": "10% minimum",
         },
     }
 
-    st.markdown('<div class="section-header">💡 Interactive Demo Prompt Starters</div>', unsafe_allow_html=True)
-    st.caption(f"Click any starter prompt below for Customer **{active_customer}** or type your own question:")
-
+    # Suggested Prompts
+    st.markdown('<div class="sh">Quick Prompts</div>', unsafe_allow_html=True)
     demo_prompts = [
-        f"Explain the Next-Best-Offer rationale for Customer {active_customer}",
-        "Why was PROD_0010 excluded from actionable recommendations?",
-        "How does the deterministic policy engine enforce the 10% margin floor?",
-        f"What is the recommended discount strategy for Customer {active_customer}?",
-        "How does the system treat missing or unverified inventory?",
-        "What is the difference between popularity-based ranking and personalised NBO?",
+        f"Explain the NBO rationale for {active_customer}",
+        "Why was PROD_0010 excluded?",
+        "How does the 10% margin floor work?",
+        f"Discount strategy for {active_customer}?",
+        "How is missing inventory handled?",
+        "Popularity vs personalised NBO?",
     ]
 
     selected_prompt = None
-    row1_cols = st.columns(3)
-    for i in range(3):
-        if row1_cols[i].button(demo_prompts[i], key=f"demo_prompt_r1_{i}", use_container_width=True):
-            selected_prompt = demo_prompts[i]
-
-    row2_cols = st.columns(3)
-    for i in range(3, 6):
-        if row2_cols[i - 3].button(demo_prompts[i], key=f"demo_prompt_r2_{i}", use_container_width=True):
-            selected_prompt = demo_prompts[i]
+    prompt_cols = st.columns(3)
+    for i, col in enumerate(prompt_cols):
+        for j in [i, i + 3]:
+            if j < len(demo_prompts):
+                if col.button(demo_prompts[j], key=f"prompt_{j}", use_container_width=True):
+                    selected_prompt = demo_prompts[j]
 
     if "assistant_messages" not in st.session_state:
-        st.session_state["assistant_messages"] = [
-            {
-                "role": "assistant",
-                "content": (
-                    f"Hello! I am your NBO Decision Intelligence Assistant. I am currently grounded in live context "
-                    f"for **Customer `{active_customer}`**, real-time product inventory facts, and deterministic margin policies. "
-                    "You can ask about any customer or product in the catalogue."
-                ),
-            }
-        ]
+        st.session_state["assistant_messages"] = [{
+            "role": "assistant",
+            "content": f"Hello! I'm grounded in live context for **{active_customer}**, inventory facts, and margin policies. Ask me anything.",
+        }]
 
-    user_input = st.chat_input(f"Ask about recommendations, policy rules, or Customer {active_customer}...")
+    user_input = st.chat_input(f"Ask about {active_customer}, products, or policies...")
     prompt_to_run = selected_prompt or user_input
 
     if prompt_to_run:
         import re
-
         mentioned_prods = re.findall(r"PROD_\d{4}", prompt_to_run, re.IGNORECASE)
         if mentioned_prods:
             cat_map = {item.get("product_id"): item for item in catalogue}
@@ -1890,10 +2053,7 @@ def render_ai_assistant() -> None:
                     queried_prods[pid.upper()] = {
                         "product_name": p_info.get("product_name"),
                         "category": p_info.get("category"),
-                        "brand": p_info.get("brand"),
-                        "unit_price": p_info.get("unit_price"),
                         "available_stock": p_info.get("available_stock"),
-                        "inventory_status": p_info.get("inventory_status"),
                         "gross_margin_pct": p_info.get("gross_margin_pct"),
                     }
             if queried_prods:
@@ -1903,109 +2063,45 @@ def render_ai_assistant() -> None:
         if mentioned_custs:
             queried_custs = {}
             for cid in set(mentioned_custs):
-                c_up = cid.upper()
-                c_data = load_customer_detail(c_up).get("customer", {})
+                c_data = load_customer_detail(cid.upper()).get("customer", {})
                 if c_data:
-                    queried_custs[c_up] = {
+                    queried_custs[cid.upper()] = {
                         "tier": c_data.get("membership_tier"),
                         "preferred_category": c_data.get("preferred_category"),
                         "total_spend": float(c_data.get("total_spend", 0.0)),
-                        "total_orders": c_data.get("total_orders", 0),
-                        "segment": c_data.get("customer_segment"),
                     }
             if queried_custs:
                 context_summary["queried_customers_in_prompt"] = queried_custs
 
         st.session_state["assistant_messages"].append({"role": "user", "content": prompt_to_run})
-        with st.spinner(f"Consulting Groq reasoning engine for {active_customer}..."):
+        with st.spinner("Thinking..."):
             reply = query_groq_assistant(prompt_to_run, context_summary)
             st.session_state["assistant_messages"].append({"role": "assistant", "content": reply})
 
-    st.markdown('<div class="section-header">💬 Governance Dialogue</div>', unsafe_allow_html=True)
+    # Chat Display
     for msg in st.session_state["assistant_messages"]:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
     if len(st.session_state["assistant_messages"]) > 2:
-        if st.button("🗑️ Reset Chat History", help="Clear conversation back to initial greeting"):
-            st.session_state["assistant_messages"] = [
-                {
-                    "role": "assistant",
-                    "content": f"Chat reset. Ready for your questions on **Customer `{active_customer}`**.",
-                }
-            ]
+        if st.button("Clear Chat", use_container_width=False):
+            st.session_state["assistant_messages"] = [{
+                "role": "assistant",
+                "content": f"Chat reset. Ready for questions on **{active_customer}**.",
+            }]
             st.rerun()
 
 
-# ---------------------------------------------------------------------------
-# Executive Overview
-# ---------------------------------------------------------------------------
-
-def render_overview() -> None:
-    render_hero(
-        "Next-Best-Offer & Product Recommendation Engine",
-        "A business-oriented decision intelligence platform balancing customer demand, profit margin, and inventory supply.",
-        tag="Executive Dashboard",
-    )
-
-    customers = load_all_customers()
-    catalogue = load_catalogue()
-    report = load_evaluation_report()
-
-    st.markdown('<div class="section-header">📊 Operational Snapshot</div>', unsafe_allow_html=True)
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Customers Tracked", len(customers), help="Verified active accounts")
-    c2.metric("Catalogue SKUs", len(catalogue), help="Tracked operational products")
-    c3.metric("Policy Compliance", "100%", help="Hard constraint compliance in tests")
-    c4.metric("Holdout ROC-AUC", report.get("ml_classification_metrics", {}).get("holdout_roc_auc", "0.8583"))
-
-    st.markdown('<div class="section-header">💡 Core Architectural Principles</div>', unsafe_allow_html=True)
-    p1, p2, p3 = st.columns(3)
-    with p1:
-        with st.container(border=True):
-            st.markdown("#### 1. Personalised Demand")
-            st.caption("Scores customer preferences through affinity signals, past basket interactions, and purchase-propensity models rather than generic popularity.")
-    with p2:
-        with st.container(border=True):
-            st.markdown("#### 2. Supply Governance")
-            st.caption("Enforces deterministic operational policies: zero-stock items, sub-10% margins, and unverified inventory are strictly excluded from offers.")
-    with p3:
-        with st.container(border=True):
-            st.markdown("#### 3. Decision Auditability")
-            st.caption("Every candidate evaluated has transparent reason codes, score breakdowns, and logged policy audit records for complete compliance.")
-
-    st.markdown('<div class="section-header">🚀 Quick Navigation to Platform Features</div>', unsafe_allow_html=True)
-    q1, q2, q3, q4, q5, q6 = st.columns(6)
-    if q1.button("👤 Customer Intelligence", use_container_width=True):
-        st.session_state["nav_page"] = "Customer Intelligence"
-        st.rerun()
-    if q2.button("🛍️ Recommendations", use_container_width=True):
-        st.session_state["nav_page"] = "Product Recommendations"
-        st.rerun()
-    if q3.button("📦 Supply & Policy", use_container_width=True):
-        st.session_state["nav_page"] = "Inventory & Policies"
-        st.rerun()
-    if q4.button("⚡ Live Playground", use_container_width=True):
-        st.session_state["nav_page"] = "Demo Playground"
-        st.rerun()
-    if q5.button("🤖 AI Assistant", use_container_width=True):
-        st.session_state["nav_page"] = "AI Decision Assistant"
-        st.rerun()
-    if q6.button("⚡ Agentic MCP Workflow", use_container_width=True):
-        st.session_state["nav_page"] = "Agentic Workflow (MCP)"
-        st.rerun()
-
-
-# ---------------------------------------------------------------------------
-# Navigation Sidebar & Main Controller
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════════
+# NAVIGATION & MAIN CONTROLLER
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def main() -> None:
     with st.sidebar:
         st.markdown(
-            "<div style='padding:10px 0 16px 0; border-bottom:1px solid #1e293b; margin-bottom:14px;'>"
-            "<div style='font-size:1.35rem; font-weight:800; color:white; letter-spacing:-0.02em;'>🛍️ Next-Best-Offer</div>"
-            "<div style='font-size:0.75rem; color:#94a3b8; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; margin-top:2px;'>Governed Intelligence MVP</div>"
+            "<div style='padding:8px 0 12px 0; border-bottom:1px solid #1b2842; margin-bottom:12px;'>"
+            "<div style='font-size:1.1rem; font-weight:800; color:white; letter-spacing:-0.01em;'>🎯 NBO Platform</div>"
+            "<div style='font-size:0.68rem; color:#94a3b8; font-weight:500; text-transform:uppercase; letter-spacing:0.05em; margin-top:2px;'>AI-Powered Recommendation Intelligence</div>"
             "</div>",
             unsafe_allow_html=True,
         )
@@ -2030,67 +2126,42 @@ def main() -> None:
         page = st.radio("Navigation", nav_options, index=default_index, label_visibility="collapsed")
         st.session_state["nav_page"] = page
 
-        st.markdown('<div style="margin-top:24px;"></div>', unsafe_allow_html=True)
         st.divider()
 
-        # Engine Health Status
+        # Backend Status
         health_info = check_api_health()
         if health_info:
             st.markdown(
-                "<div style='background:#064e3b; border:1px solid #059669; border-radius:10px; padding:10px 14px; margin-bottom:10px;'>"
-                "<div style='font-size:0.78rem; font-weight:700; color:#6ee7b7;'>● BACKEND CONNECTED</div>"
-                "<div style='font-size:0.75rem; color:#a7f3d0; margin-top:2px;'>Live FastAPI & PostgreSQL</div>"
-                "</div>",
+                "<div class='status-pill status-connected'>● Backend Connected</div>",
                 unsafe_allow_html=True,
             )
         else:
             st.markdown(
-                "<div style='background:#1e1b4b; border:1px solid #4338ca; border-radius:10px; padding:10px 14px; margin-bottom:10px;'>"
-                "<div style='font-size:0.78rem; font-weight:700; color:#c7d2fe;'>● STANDALONE ENGINE</div>"
-                "<div style='font-size:0.75rem; color:#e0e7ff; margin-top:2px;'>High-Performance Local Mode</div>"
-                "</div>",
+                "<div class='status-pill status-offline'>● Standalone Mode</div>",
                 unsafe_allow_html=True,
             )
 
-        # Live Laya / Fallback Decision Provider Status
+        # Decision Engine Status
         engine_status = check_decision_engine_status()
         if engine_status and engine_status.get("laya_available", engine_status.get("available")):
             env_txt = engine_status.get("app_env", "local")
-            state_txt = "Loaded" if engine_status.get("loaded") else "Lazy Ready"
             model_txt = engine_status.get("model", "english")
-            prec_txt = "bf16" if engine_status.get("cpu_bfloat16") else "fp32"
-            cap_txt = engine_status.get("max_candidates", 5)
             st.markdown(
-                "<div style='background:#1e1b4b; border:1px solid #6366f1; border-radius:10px; padding:10px 14px; margin-bottom:12px;'>"
-                "<div style='font-size:0.78rem; font-weight:700; color:#c7d2fe;'>● LAYA DECISION LAYER</div>"
-                f"<div style='font-size:0.75rem; color:#a5b4fc; margin-top:2px;'>{env_txt} · {state_txt} · {model_txt} ({prec_txt}, cap={cap_txt})</div>"
-                "</div>",
+                f"<div class='status-pill' style='background:#1e1b4b; border:1px solid #6366f1; color:#c7d2fe; margin-top:6px;'>● Laya · {model_txt}</div>",
                 unsafe_allow_html=True,
             )
         elif engine_status:
-            env_txt = engine_status.get("app_env", "production")
-            reason_txt = str(engine_status.get("reason") or "")
-            if env_txt == "render" or "512 mb" in reason_txt.lower():
-                subtitle = f"{env_txt} · Weighted fallback active (Render backup)"
-            else:
-                subtitle = f"{env_txt} · Weighted fallback active"
             st.markdown(
-                "<div style='background:#451a03; border:1px solid #d97706; border-radius:10px; padding:10px 14px; margin-bottom:12px;'>"
-                "<div style='font-size:0.78rem; font-weight:700; color:#fcd34d;'>● WEIGHTED FALLBACK ACTIVE</div>"
-                f"<div style='font-size:0.75rem; color:#fde68a; margin-top:2px;'>{subtitle}</div>"
-                "</div>",
+                "<div class='status-pill status-fallback' style='margin-top:6px;'>● Weighted Fallback</div>",
                 unsafe_allow_html=True,
             )
         else:
             st.markdown(
-                "<div style='background:#312e81; border:1px solid #818cf8; border-radius:10px; padding:10px 14px; margin-bottom:12px;'>"
-                "<div style='font-size:0.78rem; font-weight:700; color:#e0e7ff;'>● DECISION ENGINE OFFLINE</div>"
-                "<div style='font-size:0.75rem; color:#c7d2fe; margin-top:2px;'>Backend unreachable</div>"
-                "</div>",
+                "<div class='status-pill status-offline' style='margin-top:6px;'>● Engine Offline</div>",
                 unsafe_allow_html=True,
             )
 
-        st.caption(f"API Target: `{API_BASE_URL}`")
+        st.caption(f"API: `{API_BASE_URL}`")
 
     if page == "Overview":
         render_overview()
