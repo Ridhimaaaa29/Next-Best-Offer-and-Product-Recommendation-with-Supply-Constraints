@@ -251,3 +251,4 @@ def test_concurrent_dispatch_second_rejected():
     assert exc_info.value.status_code == 400
     assert "Insufficient stock" in exc_info.value.detail
     db_second.commit.assert_not_called()
+
